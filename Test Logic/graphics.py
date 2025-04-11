@@ -11,7 +11,7 @@ BACKGROUND_COLOR = 0, 0, 0
 DRAW_COLOR = 0, 255, 0
 BRUSH_RADIUS = 10
 CLEAR_SCREEN = False
-FADE_RATE = 0.05
+FADE_RATE = 0.1
 FADE_DEATH = 20
 FPS = 800
 
@@ -134,7 +134,7 @@ class Line_Window:
         self.screen = pygame.display.set_mode(SCREEN_SIZE)
         pygame.display.set_caption(SCREEN_TITLE)
         self.running = True
-        self.poly = Polygon([4, 4])
+        self.poly = Polygon([1, 3, 6, 12, 6, 3, 1])
         self.get_lines()
         return
 
@@ -186,17 +186,17 @@ class Line_Window:
 
 
 if __name__ == "__main__":
-    # s = Scope(SpiralSphere())
+    # s = Scope(SpiralSphere(), rotate=True, fade_regularly=True)
     # s = Scope(KleinBottle())
     # s.img_function = s.shape.get_point
 
-    # s = Scope(Polygon([4, 4]))
+    # s = Scope(Polygon([1, 4, 6, 4, 1]), rotate=True, generate=True)
     # s.img_function = s.shape.generate_parameterized_path
 
-    # s = Scope(LineSphere())
+    # s = Scope(LineSphere(), rotate=True, fade_regularly=True)
     # s.img_function = s.shape.get_frame
 
-    s = Scope(image.ImgPath(r"C:\Users\levin\Documents\Files\Images\Levin Graduation-3.jpg", 5000), fade_regularly=True)
+    s = Scope(image.ImgPath(r"C:\Users\levin\Documents\Files\Images\Levin Graduation-3.jpg", 2000), fade_regularly=True)
     s.img_function = s.shape.get_path
 
     s.run()
