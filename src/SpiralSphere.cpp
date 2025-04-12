@@ -4,8 +4,7 @@
 
 class SpiralSphere {
 private:
-    double theta, d_theta;
-    double phi, d_phi;
+    double theta_period, phi_period;
     double r;
     double tilt_x, tilt_y, tilt_z;
     double d_tilt_x, d_tilt_y, d_tilt_z;

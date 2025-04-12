@@ -24,8 +24,8 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
 
         // x, y - SpiralSphere
         auto point = sphere->getPoint(t);
-        double x = point[0];
-        double y = point[1];
+        double x = std::get<0>(point);
+        double y = std::get<1>(point);
 
         // Left channel
         *out++ = static_cast<float>(x);
