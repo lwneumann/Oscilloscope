@@ -16,4 +16,4 @@ void generateSquarePattern(float t, float& x, float& y) {
     }
 }
 
-// Add more parametric functions heree
+// Add more parametric functions here
