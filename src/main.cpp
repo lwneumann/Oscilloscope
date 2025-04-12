@@ -2,6 +2,7 @@
 #include <cmath>
 #include <portaudio.h>
 #include "SpiralSphere.h"
+#include "LineSphere.h"
 
 const double SAMPLE_RATE = 44100.0;
 const int FRAMES_PER_BUFFER = 256;
@@ -14,7 +15,8 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
                          PaStreamCallbackFlags statusFlags,
                          void *userData) {
     
-    SpiralSphere* sphere = static_cast<SpiralSphere*>(userData);
+    // SpiralSphere* sphere = static_cast<SpiralSphere*>(userData);
+    LineSphere* sphere = static_cast<LineSphere*>(userData);
     
     float* out = static_cast<float*>(outputBuffer);
     static double phase = 0.0;
@@ -27,8 +29,6 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
         auto point = sphere->getPoint(t);
         double x = std::get<0>(point);
         double y = std::get<1>(point);
-        // double x = cos(2*PI*t);
-        // double y = sin(2*PI*t);
 
         // Left channel
         *out++ = static_cast<float>(x);
@@ -50,7 +50,8 @@ int main() {
     }
 
     // Create generators
-    SpiralSphere sphere;
+    // SpiralSphere sphere;
+    LineSphere sphere;
 
     PaStream* stream;
     err = Pa_OpenDefaultStream(&stream,

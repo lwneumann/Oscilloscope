@@ -1,18 +1,29 @@
-#include "SpiralSphere.h"
+#include "LineSphere.h"
 #include <cmath>
 #include <tuple>
 
-SpiralSphere::SpiralSphere(double theta_period, double phi_period, double r,
+LineSphere::LineSphere(int x_bands, int y_bands, double r,
                            double tilt_x, double tilt_y, double tilt_z,
                            double d_tilt_x, double d_tilt_y, double d_tilt_z)
-    : theta_period(theta_period), phi_period(phi_period), r(r),
+    : x_bands(x_bands), y_bands(y_bands), r(r),
       tilt_x(tilt_x), tilt_y(tilt_y), tilt_z(tilt_z),
-      d_tilt_x(d_tilt_x), d_tilt_y(d_tilt_y), d_tilt_z(d_tilt_z) {}
+      d_tilt_x(d_tilt_x), d_tilt_y(d_tilt_y), d_tilt_z(d_tilt_z),
+      total_bands(x_bands + y_bands), band_size(1/total_bands) {}
 
-std::tuple<double, double, double> SpiralSphere::getPoint(double t) {
+std::tuple<double, double, double> LineSphere::getPoint(double t) {
+    // Get Band
+    int band = t * total_bands;
+    double internal_t = (t - (band_size * band)) / band_size;
+
     // Get angle
-    double theta = t * theta_period;
-    double phi = t * phi_period;
+    double theta, phi;
+    if (band < x_bands) {
+        theta = 2 * PI * band / x_bands;
+        phi = PI * internal_t;
+    } else {
+        theta = 2 * PI * internal_t;
+        phi = PI * band / x_bands;
+    }
 
     // Original sphere coordinates
     double x = r * cos(theta) * sin(phi);
@@ -39,7 +50,7 @@ std::tuple<double, double, double> SpiralSphere::getPoint(double t) {
     return std::make_tuple(x_z, y_z, z_y);
 }
 
-void SpiralSphere::rotate() {
+void LineSphere::rotate() {
     tilt_x += d_tilt_x;
     if (tilt_x > 2 * PI) {
         tilt_x -= 2 * PI;
