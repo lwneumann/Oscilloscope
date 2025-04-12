@@ -1,3 +1,5 @@
+#include "SpiralSphere.h"
+#include "utils.h"
 #include <cmath>
 #include <vector>
 #include <tuple>

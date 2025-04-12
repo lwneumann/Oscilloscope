@@ -3,6 +3,8 @@
 
 #include <tuple>
 
+
+
 class SpiralSphere {
 private:
     double theta_period, phi_period;
