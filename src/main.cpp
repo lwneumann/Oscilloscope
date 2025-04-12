@@ -21,11 +21,13 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
     for (unsigned int i = 0; i < framesPerBuffer; i++) {
         // Get step
         double t = std::fmod(phase, 1.0);
-
+    
         // x, y - SpiralSphere
         auto point = sphere->getPoint(t);
         double x = std::get<0>(point);
         double y = std::get<1>(point);
+        // double x = cos(2*PI*t);
+        // double y = sin(2*PI*t);
 
         // Left channel
         *out++ = static_cast<float>(x);

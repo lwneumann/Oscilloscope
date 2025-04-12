@@ -32,7 +32,7 @@ std::tuple<double, double, double> SpiralSphere::getPoint(double t) {
     double y_z = x_y * sin(tilt_z) + y_x * cos(tilt_z);
 
     // Update angles
-    if (t == 1) {
+    if (t > 0.9) {
         rotate();
     }
 
