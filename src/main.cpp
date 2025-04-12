@@ -1,70 +1,94 @@
 #include <iostream>
+#include <cmath>
 #include <portaudio.h>
-#include "audio_data.h"
-#include "audio_callback.h"
-#include "generators.h"
-#include "shapes/shape_collection.h"
-#include "shapes/spiral_sphere.cpp"
+#include "SpiralSphere.h"
 
-int main() {
-    // Initialize ShapeCollection
-    ShapeCollection shapeCollection;
+const double SAMPLE_RATE = 44100.0;
+const int FRAMES_PER_BUFFER = 256;
 
-    // Create a SpiralSphere instance
-    SpiralSphere spiralSphere;
+// Audio callback function
+static int audioCallback(const void *inputBuffer, void *outputBuffer,
+                         unsigned long framesPerBuffer,
+                         const PaStreamCallbackTimeInfo* timeInfo,
+                         PaStreamCallbackFlags statusFlags,
+                         void *userData) {
+    
+    SpiralSphere* sphere = static_cast<SpiralSphere*>(userData);
+    
+    float* out = static_cast<float*>(outputBuffer);
+    static double phase = 0.0;
 
-    // Create a Shape instance that wraps the SpiralSphere
-    Shape spiralSphereShape = {
-        [&spiralSphere](int num_points) { return spiralSphere.getFrame(num_points); }, // getFrame function
-        1.0,    // scale
-        0.0,    // x offset
-        0.0,    // y offset
-        1000    // number of points per frame
-    };
+    for (unsigned int i = 0; i < framesPerBuffer; i++) {
+        // Get step
+        double t = std::fmod(phase, 1.0);
 
-    // Add the adapted SpiralSphere to the ShapeCollection
-    shapeCollection.addShape(spiralSphereShape);
+        // x, y - SpiralSphere
+        auto point = sphere->getPoint(t);
+        double x = point[0];
+        double y = point[1];
 
-    // Demonstrate points from the SpiralSphere
-    std::cout << "Spiral Sphere Points from ShapeCollection:" << std::endl;
-    for (int i = 0; i < 5; ++i) {
-        std::vector<double> point = shapeCollection.popPoint();
-        std::cout << "Point " << i << ": (" << point[0] << ", " << point[1] << ", " << point[2] << ")" << std::endl;
+        // Left channel
+        *out++ = static_cast<float>(x);
+        // Right channel
+        *out++ = static_cast<float>(y);
+
+        // Step sawtooth
+        phase += 1.0 / SAMPLE_RATE;
     }
 
-    // Initialize PortAudio
-    Pa_Initialize();
+    return paContinue;
+}
 
-    // Audio data for the callback
-    AudioData data;
-    data.time = 0.0f;
-    data.frequency = 1.0f;
-    data.tGenerator = sawtooth;
+int main() {
+    PaError err = Pa_Initialize();
+    if (err != paNoError) {
+        std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;
+        return 1;
+    }
 
-    // Open output stream
+    // Create generators
+    SpiralSphere sphere;
+
     PaStream* stream;
-    Pa_OpenDefaultStream(&stream,
-                         0, // No input channels
-                         2, // Stereo output
-                         paFloat32,
-                         SAMPLE_RATE,
-                         FRAMES_PER_BUFFER,
-                         audioCallback,
-                         &data);
+    err = Pa_OpenDefaultStream(&stream,
+                               // Input channels
+                               0,
+                               // Stereo output
+                               2,
+                               // 32-bit floating point output
+                               paFloat32,
+                               SAMPLE_RATE,
+                               FRAMES_PER_BUFFER,
+                               audioCallback,
+                               // Sphere for points
+                               &sphere);
 
-    // Start the stream
-    Pa_StartStream(stream);
+    if (err != paNoError) {
+        std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;
+        Pa_Terminate();
+        return 1;
+    }
 
-    // Wait for user input to stop
-    std::cout << "Playing audio. Press Enter to stop." << std::endl;
+    err = Pa_StartStream(stream);
+    if (err != paNoError) {
+        std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;
+        Pa_Terminate();
+        return 1;
+    }
+
+    std::cout << "Press Enter to stop..." << std::endl;
     std::cin.get();
 
-    // Stop the stream
-    Pa_StopStream(stream);
-    Pa_CloseStream(stream);
+    err = Pa_StopStream(stream);
+    if (err != paNoError) {
+        std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;
+    }
 
-    // Terminate PortAudio
+    err = Pa_CloseStream(stream);
+    if (err != paNoError) {
+        std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;
+    }
+
     Pa_Terminate();
-
     return 0;
 }
