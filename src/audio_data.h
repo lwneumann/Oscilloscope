@@ -5,6 +5,8 @@
 
 // Constants
 #define SAMPLE_RATE 44100
+// Sample rate
+// 256 -> 44100Hz
 #define FRAMES_PER_BUFFER 256
 
 // Structure to hold audio data and generator
