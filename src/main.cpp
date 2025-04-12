@@ -3,38 +3,54 @@
 #include "audio_data.h"
 #include "audio_callback.h"
 #include "generators.h"
+#include "shapes/shape_collection.h"
+#include "shapes/spiral_sphere.cpp"
 
 int main() {
+    // Initialize ShapeCollection
+    ShapeCollection shapeCollection;
+
+    // Create a SpiralSphere instance
+    SpiralSphere spiralSphere;
+
+    // Create a Shape instance that wraps the SpiralSphere
+    Shape spiralSphereShape = {
+        [&spiralSphere](int num_points) { return spiralSphere.getFrame(num_points); }, // getFrame function
+        1.0,    // scale
+        0.0,    // x offset
+        0.0,    // y offset
+        1000    // number of points per frame
+    };
+
+    // Add the adapted SpiralSphere to the ShapeCollection
+    shapeCollection.addShape(spiralSphereShape);
+
+    // Demonstrate points from the SpiralSphere
+    std::cout << "Spiral Sphere Points from ShapeCollection:" << std::endl;
+    for (int i = 0; i < 5; ++i) {
+        std::vector<double> point = shapeCollection.popPoint();
+        std::cout << "Point " << i << ": (" << point[0] << ", " << point[1] << ", " << point[2] << ")" << std::endl;
+    }
+
     // Initialize PortAudio
     Pa_Initialize();
 
     // Audio data for the callback
     AudioData data;
-    // Start absolute time
     data.time = 0.0f;
-    // Base frequency (1 Hz)
     data.frequency = 1.0f;
-    // Set initial generator to sawtooth
     data.tGenerator = sawtooth;
 
     // Open output stream
     PaStream* stream;
     Pa_OpenDefaultStream(&stream,
-                         // Input channels
-                         0,
-                         // Stero Output
-                         2,
-                         // 32-bit floating point audio
+                         0, // No input channels
+                         2, // Stereo output
                          paFloat32,
-                         // Sample rate
                          SAMPLE_RATE,
-                         // Frames per buffer
                          FRAMES_PER_BUFFER,
-                         // Callback function
                          audioCallback,
-                         // Points to render
-                         &data
-    );
+                         &data);
 
     // Start the stream
     Pa_StartStream(stream);
@@ -46,6 +62,7 @@ int main() {
     // Stop the stream
     Pa_StopStream(stream);
     Pa_CloseStream(stream);
+
     // Terminate PortAudio
     Pa_Terminate();
 

@@ -17,7 +17,7 @@ build: $(BUILD_DIR)/main
 
 $(BUILD_DIR)/main: $(wildcard $(SRC_DIR)/*.cpp)
 	mkdir -p $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) $(PORTAUDIO_LIB_DIRS) -o $@ $^ $(PORTAUDIO_LIBS) $(PORTAUDIO_INCLUDES)
+	$(CXX) $(CXXFLAGS) $(PORTAUDIO_LIB_DIRS) -o $@ $^ $(PORTAUDIO_LIBS) $(PORTAUDIO_INCLUDES) -lm
 
 # Clean build artifacts
 clean:

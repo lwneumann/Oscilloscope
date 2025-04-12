@@ -185,6 +185,58 @@ class Line_Window:
         return
 
 
+class Grid_window:
+    """
+    TODO - actually make this
+    """
+    def __init__(self):
+        self.setup()
+        self.run()
+        return
+
+    def setup(self):
+        pygame.init()
+        self.screen = pygame.display.set_mode(SCREEN_SIZE)
+        pygame.display.set_caption(SCREEN_TITLE)
+        self.running = True
+        self.points = 1
+        return
+
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+        
+        keys = pygame.key.get_pressed()
+        # Quit
+        if keys[pygame.K_ESCAPE]:
+            self.running = False
+        # Add incremeneting points and updating if so
+        return
+
+    def draw_screen(self):
+        self.screen.fill(BACKGROUND_COLOR)
+        # Render drawn pixels
+
+        # Draw points
+
+        pygame.display.flip()
+        return
+    
+    def run(self):
+        clock = pygame.time.Clock()
+        while self.running:
+            # Events
+            self.handle_events()
+            
+            # Draw
+            self.draw_screen()
+
+            clock.tick(FPS)
+        pygame.quit()
+        return
+
+
 if __name__ == "__main__":
     # s = Scope(SpiralSphere(), rotate=True, fade_regularly=True)
     # s = Scope(KleinBottle())
