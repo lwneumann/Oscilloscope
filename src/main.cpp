@@ -5,6 +5,7 @@
 
 const double SAMPLE_RATE = 44100.0;
 const int FRAMES_PER_BUFFER = 256;
+const double WAVE_SPEED = 64.0;
 
 // Audio callback function
 static int audioCallback(const void *inputBuffer, void *outputBuffer,
@@ -35,7 +36,7 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
         *out++ = static_cast<float>(y);
 
         // Step sawtooth
-        phase += 1.0 / SAMPLE_RATE;
+        phase += WAVE_SPEED / SAMPLE_RATE;
     }
 
     return paContinue;
