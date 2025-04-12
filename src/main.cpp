@@ -5,7 +5,7 @@
 #include "LineSphere.h"
 
 const double SAMPLE_RATE = 44100.0;
-const int FRAMES_PER_BUFFER = 256;
+const int FRAMES_PER_BUFFER = 128;
 const double WAVE_SPEED = 64.0;
 
 // Audio callback function
@@ -15,8 +15,8 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
                          PaStreamCallbackFlags statusFlags,
                          void *userData) {
     
-    // SpiralSphere* sphere = static_cast<SpiralSphere*>(userData);
-    LineSphere* sphere = static_cast<LineSphere*>(userData);
+    SpiralSphere* sphere = static_cast<SpiralSphere*>(userData);
+    // LineSphere* sphere = static_cast<LineSphere*>(userData);
     
     float* out = static_cast<float*>(outputBuffer);
     static double phase = 0.0;
@@ -50,8 +50,8 @@ int main() {
     }
 
     // Create generators
-    // SpiralSphere sphere;
-    LineSphere sphere;
+    SpiralSphere sphere;
+    // LineSphere sphere;
 
     PaStream* stream;
     err = Pa_OpenDefaultStream(&stream,

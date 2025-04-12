@@ -8,7 +8,7 @@ LineSphere::LineSphere(int x_bands, int y_bands, double r,
     : x_bands(x_bands), y_bands(y_bands), r(r),
       tilt_x(tilt_x), tilt_y(tilt_y), tilt_z(tilt_z),
       d_tilt_x(d_tilt_x), d_tilt_y(d_tilt_y), d_tilt_z(d_tilt_z),
-      total_bands(x_bands + y_bands), band_size(1/total_bands) {}
+      total_bands(x_bands + y_bands), band_size(1.0 / total_bands) {}
 
 std::tuple<double, double, double> LineSphere::getPoint(double t) {
     // Get Band
@@ -19,10 +19,10 @@ std::tuple<double, double, double> LineSphere::getPoint(double t) {
     double theta, phi;
     if (band < x_bands) {
         theta = 2 * PI * band / x_bands;
-        phi = PI * internal_t;
+        phi = 2 * PI * internal_t;
     } else {
         theta = 2 * PI * internal_t;
-        phi = PI * band / x_bands;
+        phi = 2 * PI * band / x_bands;
     }
 
     // Original sphere coordinates
