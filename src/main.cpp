@@ -3,6 +3,8 @@
 #include <portaudio.h>
 #include "SpiralSphere.h"
 #include "LineSphere.h"
+#include "mushroom.h"
+#include "utils.h"
 
 const double SAMPLE_RATE = 44100.0;
 const int FRAMES_PER_BUFFER = 256;
@@ -16,9 +18,10 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
                          PaStreamCallbackFlags statusFlags,
                          void *userData) {
     
-    // SpiralSphere* sphere = static_cast<SpiralSphere*>(userData);
-    LineSphere* sphere = static_cast<LineSphere*>(userData);
-    
+    // SpiralSphere* generator = static_cast<SpiralSphere*>(userData);
+    // LineSphere* generator = static_cast<LineSphere*>(userData);
+    // mushroom* generator = static_cast<mushroom*>(userData);
+
     float* out = static_cast<float*>(outputBuffer);
     static double phase = 0.0;
 
@@ -27,12 +30,17 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
         double t = std::fmod(phase, 1.0);
     
         // x, y - SpiralSphere
-        auto point = sphere->getPoint(t);
-        double x = std::get<0>(point);
-        double y = std::get<1>(point);
+        // auto point = generator->getPoint(t);
+        // double x = std::get<0>(point);
+        // double y = std::get<1>(point);
         // double x = cos(2*PI*t);
         // double y = sin(2*PI*t);
+        // double x = (t/4.0) * sin(4 * PI * t);
+        // double y = 2.0*t-1;
 
+        // Square wave for duping
+        double x = utils::to_square_wave(t);
+        double y = 0;
 
         // Left channel
         *out++ = static_cast<float>(x);
@@ -54,8 +62,9 @@ int main() {
     }
 
     // Create generators
-    // SpiralSphere sphere;
-    LineSphere sphere;
+    // SpiralSphere generator;
+    // LineSphere generator;
+    mushroom generator;
 
     PaStream* stream;
     err = Pa_OpenDefaultStream(&stream,
@@ -69,7 +78,7 @@ int main() {
                                FRAMES_PER_BUFFER,
                                audioCallback,
                                // Sphere for points
-                               &sphere);
+                               &generator);
 
     if (err != paNoError) {
         std::cerr << "PortAudio error: " << Pa_GetErrorText(err) << std::endl;

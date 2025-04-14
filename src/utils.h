@@ -10,7 +10,10 @@
 #define ROTATE_THRESHOLD 0.9
 #endif
 
-
 // Later add lerp, distance and some other functions to a utils.cpp
+namespace utils {
+	double to_square_wave(double t, bool full_range=true);
+}
+
 
 #endif // MATH_UTILS_H
