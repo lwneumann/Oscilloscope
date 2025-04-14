@@ -20,7 +20,7 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
     
     // SpiralSphere* generator = static_cast<SpiralSphere*>(userData);
     // LineSphere* generator = static_cast<LineSphere*>(userData);
-    // mushroom* generator = static_cast<mushroom*>(userData);
+    mushroom* generator = static_cast<mushroom*>(userData);
 
     float* out = static_cast<float*>(outputBuffer);
     static double phase = 0.0;
@@ -29,18 +29,20 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
         // Get step
         double t = std::fmod(phase, 1.0);
     
-        // x, y - SpiralSphere
-        // auto point = generator->getPoint(t);
-        // double x = std::get<0>(point);
-        // double y = std::get<1>(point);
+        // x, y
+        // double x, y;
+        // x = y = 0;
+        auto point = generator->getPoint(std::fmod(4.0*t, 1.0));
+        double x = std::get<0>(point);
+        double y = std::get<1>(point);
         // double x = cos(2*PI*t);
         // double y = sin(2*PI*t);
         // double x = (t/4.0) * sin(4 * PI * t);
         // double y = 2.0*t-1;
 
         // Square wave for duping
-        double x = utils::to_square_wave(t);
-        double y = 0;
+        x = 0.45*x + 0.55 * utils::to_square_wave(t, 0.5) * utils::to_square_wave(t + 0.5);
+        y = 0.45*y + 0.55 * utils::to_square_wave(t, 0.5);
 
         // Left channel
         *out++ = static_cast<float>(x);

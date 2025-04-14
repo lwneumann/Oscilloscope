@@ -12,7 +12,8 @@
 
 // Later add lerp, distance and some other functions to a utils.cpp
 namespace utils {
-	double to_square_wave(double t, bool full_range=true);
+	int sgn(double value);
+	double to_square_wave(double t, double period = 1);
 }
 
 
