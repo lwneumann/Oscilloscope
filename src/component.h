@@ -1,9 +1,9 @@
 #ifndef COMPONENT_H
 #define COMPONENT_H
 
-#include "dynamicArray.h" // Include the DynamicArray class
+#include "dynamicArray.h"
 
-enum ComponentMode { CONSTANT, WAVEFORM };
+enum ComponentMode { CONSTANT, WAVEFORM, CONTAINER };
 enum OperationMode { SUM, PRODUCT };
 
 class Component {
@@ -27,7 +27,7 @@ public:
         children[0] = Component(0.0);
     }
 
-    // Destructor (default behavior is fine)? is not?
+    // Destructor (default behavior is fine..?)
     ~Component() = default;
 
     // Copy Constructor
@@ -40,7 +40,8 @@ public:
 
     // Assignment Operator
     Component& operator=(const Component& other) {
-        if (this == &other) return *this; // Handle self-assignment
+        // Self-assignment
+        if (this == &other) return *this;
 
         is_constant = other.is_constant;
         const_value = other.const_value;
