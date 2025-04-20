@@ -1,7 +1,7 @@
 #ifndef LINESPHERE_H
 #define LINESPHERE_H
 
-#include "utils.h"
+#include "../utils.h"
 #include <tuple>
 
 class LineSphere {

@@ -1,7 +1,12 @@
 #include "WaveGenerator.h"
 
-WaveGenerator::WaveGenerator(WaveType type, double frequency, double amplitude, double phase)
-    : waveType(type), frequency(frequency), amplitude(amplitude), phase(phase) {}
+WaveGenerator::WaveGenerator(WaveType type,
+        double frequency, double amplitude,
+        double phase,
+        double wave_speed, double sample_rate)
+    : waveType(type),
+        frequency(frequency), amplitude(amplitude),
+        phase(phase), wave_speed(wave_speed), sample_rate(sample_rate) {}
 
 double WaveGenerator::generate(double t) {
     // Normalize t to [0, 1] with phase
@@ -15,11 +20,15 @@ double WaveGenerator::generate(double t) {
         case SAWTOOTH: return sawtoothWave(t);
         default: return 0.0;
     }
+    // Step wave
+    phase += wave_speed / sample_rate;
 }
 
 void WaveGenerator::setFrequency(double frequency) { this->frequency = frequency; }
 void WaveGenerator::setAmplitude(double amplitude) { this->amplitude = amplitude; }
 void WaveGenerator::setPhase(double phase) { this->phase = phase; }
+void WaveGenerator::setWaveSpeed(double wave_speed) { this->phase = wave_speed; }
+void WaveGenerator::setSampleRate(double sample_rate) { this->sample_rate = sample_rate; }
 void WaveGenerator::setWaveType(WaveType type) { this->waveType = type; }
 
 double WaveGenerator::sineWave(double t) {
@@ -36,4 +45,15 @@ double WaveGenerator::triangleWave(double t) {
 
 double WaveGenerator::sawtoothWave(double t) {
     return amplitude * (2 * t - 1);
+}
+
+std::string WaveGenerator::getWaveTypeAsString() const {
+    switch (waveType) {
+        case SINE: return "SINE";
+        case COSINE: return "COSINE";
+        case SQUARE: return "SQUARE";
+        case TRIANGLE: return "TRIANGLE";
+        case SAWTOOTH: return "SAWTOOTH";
+        default: return "UNKNOWN";
+    }
 }

@@ -2,69 +2,44 @@
 #define COMPONENT_H
 
 #include "dynamicArray.h"
+#include "waveGenerator.h"
 
-enum OperationMode { SUM, PRODUCT };
 
 class Component {
 public:
+    enum ComponentMode { CONSTANT, WAVEFORM, CONTAINER };
+    enum OperationMode { SUM, PRODUCT };
     // Attributes
-    bool is_constant = true;
-    OperationMode opMode = SUM;
+    ComponentMode mode = CONSTANT;
     double const_value = 0.0;
+    OperationMode opMode = SUM;
     Component offset = Component(0.0);
     Component rotate_threshold = Component(0.9);
     DynamicArray<Component> children;
+    WaveGenerator waveGen;
 
     // Constructors
-    // -- Default
-    Component() : children(1) {
-        children[0] = Component(0.0);
-    }
-    // -- Constants
-    Component(double value)
-        : is_constant(true), const_value(value), children(1) {
-        children[0] = Component(0.0);
-    }
+    // -- Default (CONTAINER)
+    Component();
+    // -- Constant
+    Component(double value);
+    // -- Waveform
+    Component(WaveGenerator::WaveType waveType, double frequency, double amplitude, double phase);
 
-    // Destructor (default behavior is fine..?)
+    // Destructor
     ~Component() = default;
 
-    // Copy Constructor
-    Component(const Component& other)
-        : is_constant(other.is_constant),
-          const_value(other.const_value),
-          offset(other.offset),
-          rotate_threshold(other.rotate_threshold),
-          children(other.children) {}
+    // Copy constructor
+    Component(const Component& other);
 
-    // Assignment Operator
-    Component& operator=(const Component& other) {
-        // Self-assignment
-        if (this == &other) return *this;
+    // Assignment operator
+    Component& operator=(const Component& other);
 
-        is_constant = other.is_constant;
-        const_value = other.const_value;
-        offset = other.offset;
-        rotate_threshold = other.rotate_threshold;
-        children = other.children;
-
-        return *this;
-    }
+    // Evaluate the component's value at time t
+    double evaluate(double t);
 
     // Print details for debugging
-    void printDetails() const {
-        if (is_constant) {
-            std::cout << "Constant Component with value: " << const_value << std::endl;
-        } else {
-            std::cout << "Non-constant Component" << std::endl;
-            std::cout << "  Offset: " << offset.const_value << std::endl;
-            std::cout << "  Rotate Threshold: " << rotate_threshold.const_value << std::endl;
-        }
-        std::cout << "Number of children: " << children.getSize() << std::endl;
-        for (int i = 0; i < children.getSize(); ++i) {
-            std::cout << "  Child " << i << " const_value: " << children[i].const_value << std::endl;
-        }
-    }
+    void printDetails() const;
 };
 
 #endif // COMPONENT_H
