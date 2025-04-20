@@ -3,13 +3,12 @@
 
 #include "dynamicArray.h"
 
-enum ComponentMode { CONSTANT, WAVEFORM, CONTAINER };
 enum OperationMode { SUM, PRODUCT };
 
 class Component {
 public:
     // Attributes
-    ComponentMode compMode = CONSTANT;
+    bool is_constant = true;
     OperationMode opMode = SUM;
     double const_value = 0.0;
     Component offset = Component(0.0);
