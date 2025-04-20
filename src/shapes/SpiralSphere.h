@@ -1,7 +1,7 @@
 #ifndef SPIRALSPHERE_H
 #define SPIRALSPHERE_H
 
-#include "utils.h"
+#include "../utils.h"
 #include <tuple>
 
 class SpiralSphere {

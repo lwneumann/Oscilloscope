@@ -6,42 +6,29 @@
 template <typename T>
 class DynamicArray {
 private:
-    // Pointer to the array
-    T* array;
-    // Current number of elements
-    int size;
-    // Maximum capacity of the array
-    int capacity;
+    T* array;              // Pointer to the array
+    int size;              // Current number of elements
+    int capacity;          // Maximum capacity of the array
 
-    // Handle capacity
-    void growArray();
-    void shrinkArray();
+    void growArray();      // Double the capacity
+    void shrinkArray();    // Halve the capacity
 
 public:
-// Default constructor
-    DynamicArray();
-    // Constructor with initial capacity
-    DynamicArray(int capacity);
-    // Destructor
-    ~DynamicArray();
+    DynamicArray();                          // Default constructor
+    DynamicArray(int capacity);              // Constructor with initial capacity
+    ~DynamicArray();                         // Destructor
 
-    int getSize() const;
-    int getCapacity() const;
-    bool isEmpty() const;
+    int getSize() const;                     // Get the current size
+    int getCapacity() const;                 // Get the current capacity
+    bool isEmpty() const;                    // Check if the array is empty
 
-    // Add an element to end
-    void push_back(const T& value);
-    // Remove last element
-    void pop_back();
-    // Insert at a specific index
-    void insertAt(int index, const T& value);
-    // Delete at a specific index
-    void deleteAt(int index);
+    void push_back(const T& value);          // Add an element to the end
+    void pop_back();                         // Remove the last element
+    void insertAt(int index, const T& value);// Insert an element at a specific index
+    void deleteAt(int index);                // Delete an element at a specific index
 
-    // Index
-    T& operator[](int index);
-    // Index (const version)
-    const T& operator[](int index) const;
+    T& operator[](int index);                // Access element by index
+    const T& operator[](int index) const;    // Access element by index (const version)
 };
 
 #include "dynamicArray.tpp"

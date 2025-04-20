@@ -38,6 +38,8 @@ private:
     double frequency;
     double amplitude;
     double phase;
+    double wave_speed;
+    double sample_rate;
 
     double sineWave(double t);
     double squareWave(double t);

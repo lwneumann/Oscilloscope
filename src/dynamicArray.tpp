@@ -1,51 +1,6 @@
 #include <iostream>
 #include <stdexcept>
 
-template <class T>
-class DynamicArray {
-private:
-    // Pointer to the array
-    T* array;
-    // Current number of elements
-    int size;
-    // Maximum capacity of the array
-    int capacity;
-
-    // Double the capacity
-    void growArray();
-    // Halve the capacity
-    void shrinkArray();
-
-public:
-    // Default constructor
-    DynamicArray();
-    // Constructor with initial capacity
-    DynamicArray(int capacity);
-    // Destructor
-    ~DynamicArray();
-
-    // Get the current size
-    int getSize() const;
-    // Get the current capacity
-    int getCapacity() const;
-    // Check if the array is empty
-    bool isEmpty() const;
-
-    // Add an element to the end
-    void push_back(const T& value);
-    // Remove the last element
-    void pop_back();
-    // Insert an element at a specific index
-    void insertAt(int index, const T& value);
-    // Delete an element at a specific index
-    void deleteAt(int index);
-
-    // Access element by index
-    T& operator[](int index);
-    // Access element by index (const version)
-    const T& operator[](int index) const;
-};
-
 // Default constructor
 template <typename T>
 DynamicArray<T>::DynamicArray() : size(0), capacity(1) {
@@ -141,8 +96,7 @@ T& DynamicArray<T>::operator[](int index) {
         throw std::out_of_range("Index out of range");
     }
     if (index < 0) {
-        // Reverse indexing
-        index += size;
+        index += size; // Reverse indexing
     }
     return array[index];
 }
@@ -154,8 +108,7 @@ const T& DynamicArray<T>::operator[](int index) const {
         throw std::out_of_range("Index out of range");
     }
     if (index < 0) {
-        // Reverse indexing
-        index += size;
+        index += size; // Reverse indexing
     }
     return array[index];
 }
