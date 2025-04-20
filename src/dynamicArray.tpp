@@ -137,8 +137,12 @@ void DynamicArray<T>::deleteAt(int index) {
 // Access element by index
 template <typename T>
 T& DynamicArray<T>::operator[](int index) {
-    if (index < 0 || index >= size) {
+    if (index <= -size || index >= size) {
         throw std::out_of_range("Index out of range");
+    }
+    if (index < 0) {
+        // Reverse indexing
+        index += size;
     }
     return array[index];
 }
