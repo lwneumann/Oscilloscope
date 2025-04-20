@@ -1,9 +1,9 @@
 #include <iostream>
 #include <cmath>
 #include <portaudio.h>
-#include "SpiralSphere.h"
-#include "LineSphere.h"
-#include "mushroom.h"
+#include "shapes/SpiralSphere.h"
+#include "shapes/LineSphere.h"
+#include "shapes/mushroom.h"
 #include "utils.h"
 
 const double SAMPLE_RATE = 44100.0;
