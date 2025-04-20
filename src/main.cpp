@@ -18,16 +18,7 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
                          const PaStreamCallbackTimeInfo* timeInfo,
                          PaStreamCallbackFlags statusFlags,
                          void *userData) {
-    
-    // SpiralSphere* generator = static_cast<SpiralSphere*>(userData);
-    // LineSphere* generator = static_cast<LineSphere*>(userData);
-    // mushroom* generator = static_cast<mushroom*>(userData);
-
-    std::array<SpiralSphere, 3> generator = {
-        *static_cast<SpiralSphere*>(userData),
-        *static_cast<SpiralSphere*>(userData),
-        *static_cast<SpiralSphere*>(userData)
-    };
+    // assign generator automatically from userData?
 
     float* out = static_cast<float*>(outputBuffer);
     static double phase = 0.0;
@@ -44,12 +35,14 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
         // double x = std::get<0>(point);
         // double y = std::get<1>(point);
 
-        // Get each sphere
         // x = 0.45*x + 0.55 * utils::to_square_wave(t, 0.5) * utils::to_square_wave(t + 0.5);
         // y = 0.45*y + 0.55 * utils::to_square_wave(t, 0.5);
         double local_t = generator.size * t;
-        double sphere_i = floor(local_t);
+        int sphere_i = floor(local_t);
         local_t = std::fmod(local_t, 1.0);
+        auto point = generator[sphere_i]->getPoint(std::fmod(t, 1.0));
+        double x = std::get<0>(point);
+        double y = std::get<1>(point);
 
         // Left channel
         *out++ = static_cast<float>(x);
@@ -71,11 +64,15 @@ int main() {
     }
 
     // Create generators
-    // SpiralSphere generator;
-    // LineSphere generator;
-    // mushroom generator;
+    // SpiralSphere generator = SpiralSphere();
+    // LineSphere generator = LineSphere();
+    // mushroom generator = mushroom();
 
-    std::array<SpiralSphere, 3> generator;
+    std::array<SpiralSphere, 3> generator = {
+        SpiralSphere(12*PI, 1 - (0.0 / 3)),
+        SpiralSphere(12*PI, 1 - (1.0 / 3)),
+        SpiralSphere(12*PI, 1 - (2.0 / 3))
+    };
 
     PaStream* stream;
     err = Pa_OpenDefaultStream(&stream,
