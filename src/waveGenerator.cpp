@@ -1,4 +1,4 @@
-#include "WaveGenerator.h"
+#include "waveGenerator.h"
 
 WaveGenerator::WaveGenerator(WaveType type,
         double frequency, double amplitude,
@@ -45,15 +45,4 @@ double WaveGenerator::triangleWave(double t) {
 
 double WaveGenerator::sawtoothWave(double t) {
     return amplitude * (2 * t - 1);
-}
-
-std::string WaveGenerator::getWaveTypeAsString() const {
-    switch (waveType) {
-        case SINE: return "SINE";
-        case COSINE: return "COSINE";
-        case SQUARE: return "SQUARE";
-        case TRIANGLE: return "TRIANGLE";
-        case SAWTOOTH: return "SAWTOOTH";
-        default: return "UNKNOWN";
-    }
 }

@@ -1,10 +1,11 @@
-#ifndef SPIRALSPHERE_H
-#define SPIRALSPHERE_H
+#ifndef SPIRAL_SPHERE_H
+#define SPIRAL_SPHERE_H
 
 #include "../utils.h"
+#include "baseGenerator.h"
 #include <tuple>
 
-class SpiralSphere {
+class SpiralSphere : public BaseGenerator {
 private:
     double theta_period, phi_period;
     double r;
@@ -16,8 +17,8 @@ public:
                  double tilt_x = PI / 6, double tilt_y = PI / 6, double tilt_z = PI / 6,
                  double d_tilt_x = 0.0001, double d_tilt_y = 0, double d_tilt_z = 0);
 
-    std::tuple<double, double, double> getPoint(double t);
+    std::tuple<double, double, double> getPoint(double t) override;
     void rotate();
 };
 
-#endif // SPIRALSPHERE_H
+#endif // SPIRAL_SPHERE_H

@@ -1,10 +1,11 @@
-#ifndef LINESPHERE_H
-#define LINESPHERE_H
+#ifndef LINE_SPHERE_H
+#define LINE_SPHERE_H
 
 #include "../utils.h"
+#include "baseGenerator.h"
 #include <tuple>
 
-class LineSphere {
+class LineSphere : public BaseGenerator {
 private:
     int x_bands, y_bands;
     double r;
@@ -18,8 +19,8 @@ public:
                  double tilt_x = PI / 6, double tilt_y = PI / 6, double tilt_z = PI / 6,
                  double d_tilt_x = 0.0001, double d_tilt_y = 0, double d_tilt_z = 0);
 
-    std::tuple<double, double, double> getPoint(double t);
+    std::tuple<double, double, double> getPoint(double t) override;
     void rotate();
 };
 
-#endif // LINESPHERE_H
+#endif // LINE_SPHERE_H

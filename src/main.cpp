@@ -2,9 +2,7 @@
 #include <cmath>
 #include <portaudio.h>
 #include <array>
-#include "shapes/SpiralSphere.h"
-#include "shapes/LineSphere.h"
-#include "shapes/mushroom.h"
+#include "shapes/allShapes.h"
 #include "utils.h"
 
 const double SAMPLE_RATE = 44100.0;
@@ -18,7 +16,8 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
                          const PaStreamCallbackTimeInfo* timeInfo,
                          PaStreamCallbackFlags statusFlags,
                          void *userData) {
-    // assign generator automatically from userData?
+    
+    auto* generator = static_cast<BaseGenerator*>(userData);
 
     float* out = static_cast<float*>(outputBuffer);
     static double phase = 0.0;
@@ -30,19 +29,20 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
         // x, y
         // double x, y;
         // x = y = 0;
-        // auto point = generator->getPoint(std::fmod(6.0*t, 1.0));
-        // auto point = generator->getPoint(std::fmod(t, 1.0));
-        // double x = std::get<0>(point);
-        // double y = std::get<1>(point);
+        // auto point = generator->getPoint(std::fmod(4.0*t, 1.0));
+        auto point = generator->getPoint(std::fmod(t, 1.0));
+        double x = std::get<0>(point);
+        double y = std::get<1>(point);
 
         // x = 0.45*x + 0.55 * utils::to_square_wave(t, 0.5) * utils::to_square_wave(t + 0.5);
         // y = 0.45*y + 0.55 * utils::to_square_wave(t, 0.5);
-        double local_t = generator.size * t;
-        int sphere_i = floor(local_t);
-        local_t = std::fmod(local_t, 1.0);
-        auto point = generator[sphere_i]->getPoint(std::fmod(t, 1.0));
-        double x = std::get<0>(point);
-        double y = std::get<1>(point);
+        
+        // double local_t = generator->size * t;
+        // int sphere_i = floor(local_t);
+        // local_t = std::fmod(local_t, 1.0);
+        // auto point = generator[sphere_i]->getPoint(std::fmod(t, 1.0));
+        // double x = std::get<0>(point);
+        // double y = std::get<1>(point);
 
         // Left channel
         *out++ = static_cast<float>(x);
@@ -66,13 +66,12 @@ int main() {
     // Create generators
     // SpiralSphere generator = SpiralSphere();
     // LineSphere generator = LineSphere();
-    // mushroom generator = mushroom();
-
-    std::array<SpiralSphere, 3> generator = {
-        SpiralSphere(12*PI, 1 - (0.0 / 3)),
-        SpiralSphere(12*PI, 1 - (1.0 / 3)),
-        SpiralSphere(12*PI, 1 - (2.0 / 3))
-    };
+    mushroom generator = mushroom();
+    // std::array<SpiralSphere, 3> generator = {
+    //     SpiralSphere(12*PI, 1 - (0.0 / 3), 1, PI/6, PI/6, PI/6, 0.0001, 0.0, 0.0),
+    //     SpiralSphere(12*PI, 1 - (1.0 / 3), 1, PI/6, PI/6, PI/6, 0.0001, 0.0, 0.0),
+    //     SpiralSphere(12*PI, 1 - (2.0 / 3), 1, PI/6, PI/6, PI/6, 0.0001, 0.0, 0.0)
+    // };
 
     PaStream* stream;
     err = Pa_OpenDefaultStream(&stream,

@@ -31,7 +31,6 @@ public:
     double getPhase() const { return phase; }
     double getWaveSpeed() const { return wave_speed; }
     double getSampleRate() const { return sample_rate; }
-    std::string getWaveTypeAsString() const;
 
 private:
     WaveType waveType;

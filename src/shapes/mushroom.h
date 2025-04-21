@@ -2,9 +2,10 @@
 #define MUSHROOM_H
 
 #include "../utils.h"
+#include "baseGenerator.h"
 #include <tuple>
 
-class mushroom {
+class mushroom : public BaseGenerator {
 private:
     double theta_period, phi_period;
     double r, cap_r;
@@ -19,7 +20,7 @@ public:
                 double tilt_x = 0.5, double tilt_y = 0.0, double tilt_z = 0.0,
                 double d_tilt_x = 0.0, double d_tilt_y = 0.0, double d_tilt_z = 0.0);
 
-    std::tuple<double, double, double> getPoint(double t);
+    std::tuple<double, double, double> getPoint(double t) override;
     void rotate();
 };
 
