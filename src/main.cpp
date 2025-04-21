@@ -29,13 +29,13 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
         // x, y
         // double x, y;
         // x = y = 0;
-        // auto point = generator->getPoint(std::fmod(4.0*t, 1.0));
-        auto point = generator->getPoint(std::fmod(t, 1.0));
+        auto point = generator->getPoint(std::fmod(4.0*t, 1.0));
+        // auto point = generator->getPoint(std::fmod(t, 1.0));
         double x = std::get<0>(point);
         double y = std::get<1>(point);
 
-        // x = 0.45*x + 0.55 * utils::to_square_wave(t, 0.5) * utils::to_square_wave(t + 0.5);
-        // y = 0.45*y + 0.55 * utils::to_square_wave(t, 0.5);
+        x = 0.45*x + 0.55 * utils::to_square_wave(t, 0.5) * utils::to_square_wave(t + 0.5);
+        y = 0.45*y + 0.55 * utils::to_square_wave(t, 0.5);
         
         // double local_t = generator->size * t;
         // int sphere_i = floor(local_t);

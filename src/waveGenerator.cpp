@@ -6,7 +6,8 @@ WaveGenerator::WaveGenerator(WaveType type,
         double wave_speed, double sample_rate)
     : waveType(type),
         frequency(frequency), amplitude(amplitude),
-        phase(phase), wave_speed(wave_speed), sample_rate(sample_rate) {}
+        phase(phase), wave_speed(wave_speed), sample_rate(sample_rate)
+    {}
 
 double WaveGenerator::generate(double t) {
     // Normalize t to [0, 1] with phase

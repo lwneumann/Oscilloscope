@@ -19,24 +19,13 @@ std::tuple<double, double, double> SpiralSphere::getPoint(double t) {
     double y = r * sin(theta) * sin(phi);
     double z = r * cos(phi);
 
-    // Apply X-axis rotation
-    double y_x = y * cos(tilt_x) - z * sin(tilt_x);
-    double z_x = y * sin(tilt_x) + z * cos(tilt_x);
-
-    // Apply Y-axis rotation
-    double x_y = x * cos(tilt_y) + z_x * sin(tilt_y);
-    double z_y = -x * sin(tilt_y) + z_x * cos(tilt_y);
-
-    // Apply Z-axis rotation
-    double x_z = x_y * cos(tilt_z) - y_x * sin(tilt_z);
-    double y_z = x_y * sin(tilt_z) + y_x * cos(tilt_z);
-
     // Update angles
     if (t > ROTATE_THRESHOLD) {
         rotate();
     }
 
-    return std::make_tuple(x_z, y_z, z_y);
+    // Return rotated point
+    return utils::rotatePoint(x, y, z, tilt_x, tilt_y, tilt_z);
 }
 
 void SpiralSphere::rotate() {
