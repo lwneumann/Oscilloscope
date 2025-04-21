@@ -4,20 +4,26 @@
 #include <array>
 #include "shapes/allShapes.h"
 #include "utils.h"
+#include "duplicate.h"
+
 
 const double SAMPLE_RATE = 44100.0;
+// const double SAMPLE_RATE = 48000.0;
 const int FRAMES_PER_BUFFER = 256;
 const double WAVE_SPEED = 64.0;
-// 64
+
 
 // Audio callback function
 static int audioCallback(const void *inputBuffer, void *outputBuffer,
                          unsigned long framesPerBuffer,
                          const PaStreamCallbackTimeInfo* timeInfo,
                          PaStreamCallbackFlags statusFlags,
-                         void *userData) {
+                         void *generatorData, void duplicatorData) {
     
-    auto* generator = static_cast<BaseGenerator*>(userData);
+    auto* generator = static_cast<BaseGenerator*>(generatorData);
+    
+    Duplicate duplicator = Duplicate(Duplicate::ORBIT, 2);
+    
 
     float* out = static_cast<float*>(outputBuffer);
     static double phase = 0.0;
@@ -25,28 +31,30 @@ static int audioCallback(const void *inputBuffer, void *outputBuffer,
     for (unsigned int i = 0; i < framesPerBuffer; i++) {
         // Get step
         double t = std::fmod(phase, 1.0);
-    
-        // x, y
-        // double x, y;
-        // x = y = 0;
-        auto point = generator->getPoint(std::fmod(4.0*t, 1.0));
-        // auto point = generator->getPoint(std::fmod(t, 1.0));
+        
+        // Get duplicate info
+        auto duplicate_info = duplicator.getPoint(t);
+        double local_t = std::get<0>(duplicate_info);
+        double x_offset = std::get<1>(duplicate_info);
+        double y_offset = std::get<2>(duplicate_info);
+        // double z_offset = std::get<3>(duplicate_info);
+        // Get point
+        auto point = generator->getPoint(local_t);
         double x = std::get<0>(point);
         double y = std::get<1>(point);
+        if (duplicator.getDuplicity() != 1) {
+            x *= 0.7/duplicator.getDuplicity();
+            y *= 0.7/duplicator.getDuplicity();
+            x += x_offset;
+            y += y_offset;
+            // std::cout << x_offset << std::endl;
+        }
+        // Apply projection eventually if wanted maybe
 
-        x = 0.45*x + 0.55 * utils::to_square_wave(t, 0.5) * utils::to_square_wave(t + 0.5);
-        y = 0.45*y + 0.55 * utils::to_square_wave(t, 0.5);
-        
-        // double local_t = generator->size * t;
-        // int sphere_i = floor(local_t);
-        // local_t = std::fmod(local_t, 1.0);
-        // auto point = generator[sphere_i]->getPoint(std::fmod(t, 1.0));
-        // double x = std::get<0>(point);
-        // double y = std::get<1>(point);
-
-        // Left channel
+        // Output
+        // -- Left channel
         *out++ = static_cast<float>(x);
-        // Right channel
+        // -- Right channel
         *out++ = static_cast<float>(y);
 
         // Step sawtooth
@@ -64,14 +72,9 @@ int main() {
     }
 
     // Create generators
-    // SpiralSphere generator = SpiralSphere();
+    SpiralSphere generator = SpiralSphere();
     // LineSphere generator = LineSphere();
-    mushroom generator = mushroom();
-    // std::array<SpiralSphere, 3> generator = {
-    //     SpiralSphere(12*PI, 1 - (0.0 / 3), 1, PI/6, PI/6, PI/6, 0.0001, 0.0, 0.0),
-    //     SpiralSphere(12*PI, 1 - (1.0 / 3), 1, PI/6, PI/6, PI/6, 0.0001, 0.0, 0.0),
-    //     SpiralSphere(12*PI, 1 - (2.0 / 3), 1, PI/6, PI/6, PI/6, 0.0001, 0.0, 0.0)
-    // };
+    // mushroom generator = mushroom();
 
     PaStream* stream;
     err = Pa_OpenDefaultStream(&stream,

@@ -5,19 +5,22 @@
 
 class Duplicate {
 public:
-	enum DisplayMode { GRID, ORBIT, SPIRAL };
+	enum DisplayMode { NONE, GRID, ORBIT, SPIRAL };
 
-	Duplicate(DisplayMode mode,
-		int duplicity = 2);
+	Duplicate(DisplayMode mode = NONE,
+		int duplicity = 2,
+		double otherSetting = 0.0);
 
 	void setMode(DisplayMode mode);
 	void setDuplicity(int duplicity);
+	int getDuplicity() { return duplicity; };
 
-	std::tuple<double, double, double> getPoint(double t);
+	std::tuple<double, double, double, double> getPoint(double t);
 
 private:
 	DisplayMode mode;
 	int duplicity;
-}
+	double otherSetting;
+};
 
 #endif // DUPLICATE_H
