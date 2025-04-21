@@ -13,18 +13,23 @@ const int FRAMES_PER_BUFFER = 256;
 const double WAVE_SPEED = 64.0;
 
 
+struct UserData {
+    BaseGenerator generator;
+    Duplicate duplicator;
+};
+
 // Audio callback function
 static int audioCallback(const void *inputBuffer, void *outputBuffer,
                          unsigned long framesPerBuffer,
                          const PaStreamCallbackTimeInfo* timeInfo,
                          PaStreamCallbackFlags statusFlags,
-                         void *generatorData, void duplicatorData) {
+                         void *userData) {
     
-    auto* generator = static_cast<BaseGenerator*>(generatorData);
-    
-    Duplicate duplicator = Duplicate(Duplicate::ORBIT, 2);
-    
+    UserData* data = static_cast<UserData*>(userData);
 
+    auto* generator = data->generator;
+    Duplicate duplicator = data->duplicator;
+    
     float* out = static_cast<float*>(outputBuffer);
     static double phase = 0.0;
 
@@ -71,10 +76,14 @@ int main() {
         return 1;
     }
 
+    UserData userData;
+
     // Create generators
     SpiralSphere generator = SpiralSphere();
     // LineSphere generator = LineSphere();
     // mushroom generator = mushroom();
+    
+    userData.duplicator = Duplicate(Duplicate::ORBIT, 2);
 
     PaStream* stream;
     err = Pa_OpenDefaultStream(&stream,

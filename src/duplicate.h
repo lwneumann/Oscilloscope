@@ -9,7 +9,7 @@ public:
 
 	Duplicate(DisplayMode mode = NONE,
 		int duplicity = 2,
-		double otherSetting = 0.0);
+		double otherSetting = 2.0/3.0);
 
 	void setMode(DisplayMode mode);
 	void setDuplicity(int duplicity);
