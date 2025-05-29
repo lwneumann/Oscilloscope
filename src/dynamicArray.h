@@ -3,34 +3,52 @@
 
 #include <stdexcept>
 
-template <typename T>
+template <class T>
 class DynamicArray {
 private:
-    T* array;              // Pointer to the array
-    int size;              // Current number of elements
-    int capacity;          // Maximum capacity of the array
+    // Pointer to the array
+    T* array;
+    // Current number of elements
+    int size;
+    // Maximum capacity of the array
+    int capacity;
 
-    void growArray();      // Double the capacity
-    void shrinkArray();    // Halve the capacity
+    // Double the capacity
+    void growArray();
+    // Halve the capacity
+    void shrinkArray();
 
 public:
-    DynamicArray();                          // Default constructor
-    DynamicArray(int capacity);              // Constructor with initial capacity
-    ~DynamicArray();                         // Destructor
+// Default constructor
+    DynamicArray();
+    // Constructor with initial capacity
+    DynamicArray(int capacity);
+    // Destructor
+    ~DynamicArray();
 
-    int getSize() const;                     // Get the current size
-    int getCapacity() const;                 // Get the current capacity
-    bool isEmpty() const;                    // Check if the array is empty
+    // Get the current size
+    int getSize() const;
+    // Get the current capacity
+    int getCapacity() const;
+    // Check if the array is empty
+    bool isEmpty() const;
 
-    void push_back(const T& value);          // Add an element to the end
-    void pop_back();                         // Remove the last element
-    void insertAt(int index, const T& value);// Insert an element at a specific index
-    void deleteAt(int index);                // Delete an element at a specific index
+    // Add an element to the end
+    void push_back(const T& value);
+    // Remove the last element
+    void pop_back();
+    // Insert an element at a specific index
+    void insertAt(int index, const T& value);
+    // Delete an element at a specific index
+    void deleteAt(int index);
 
-    T& operator[](int index);                // Access element by index
-    const T& operator[](int index) const;    // Access element by index (const version)
+    // Access element by index
+    T& operator[](int index);
+    // Access element by index (const version)
+    const T& operator[](int index) const;
 };
 
+// Include the implementation of the template class
 #include "dynamicArray.tpp"
 
 #endif // DYNAMICARRAY_H

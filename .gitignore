@@ -1,3 +1,4 @@
-TestLogic/__pycache__/
-build/
+Python/TestLogic/__pycache__/
+Python/Scope/__pycache__/
+C++/build/
 .vscode/

@@ -1,23 +1,35 @@
-#include "WaveGenerator.h"
+#include "waveGenerator.h"
 
-WaveGenerator::WaveGenerator(WaveType type, double frequency, double amplitude, double phase)
-    : waveType(type), frequency(frequency), amplitude(amplitude), phase(phase) {}
+WaveGenerator::WaveGenerator(WaveType type,
+        double frequency, double amplitude,
+        double phase,
+        double wave_speed, double sample_rate)
+    : waveType(type),
+        frequency(frequency), amplitude(amplitude),
+        phase(phase), wave_speed(wave_speed), sample_rate(sample_rate)
+    {}
 
 double WaveGenerator::generate(double t) {
-    t = std::fmod(t + phase, 1.0); // Normalize t to [0, 1] with phase
+    // Normalize t to [0, 1] with phase
+    t = std::fmod(t + phase, 1.0);
     switch (waveType) {
         case SINE: return sineWave(t);
-        case COSINE: return sineWave(t + 0.25); // Cosine is a phase-shifted sine
+        // Useful for circles and such without manually setting offset
+        case COSINE: return sineWave(t + 0.25);
         case SQUARE: return squareWave(t);
         case TRIANGLE: return triangleWave(t);
         case SAWTOOTH: return sawtoothWave(t);
         default: return 0.0;
     }
+    // Step wave
+    phase += wave_speed / sample_rate;
 }
 
 void WaveGenerator::setFrequency(double frequency) { this->frequency = frequency; }
 void WaveGenerator::setAmplitude(double amplitude) { this->amplitude = amplitude; }
 void WaveGenerator::setPhase(double phase) { this->phase = phase; }
+void WaveGenerator::setWaveSpeed(double wave_speed) { this->phase = wave_speed; }
+void WaveGenerator::setSampleRate(double sample_rate) { this->sample_rate = sample_rate; }
 void WaveGenerator::setWaveType(WaveType type) { this->waveType = type; }
 
 double WaveGenerator::sineWave(double t) {
