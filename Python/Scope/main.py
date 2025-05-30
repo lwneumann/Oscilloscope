@@ -13,6 +13,7 @@ class Curse:
         self.container = collection.Collection("■", [collection.Collection()])
         return
 
+    # ==== Setup and Graphics ====
     def setup_curse(self):
         # Initialize windoow
         self.stdscr = curses.initscr()
@@ -49,6 +50,10 @@ class Curse:
         return
 
     def write_row(self, y, depth, indexes, text=None):
+        # Don't crash
+        if y >= curses.LINES:
+            return y
+        
         # If text is None, just write an empty row
         x = 1
         for i, d in enumerate(depth):
@@ -70,6 +75,10 @@ class Curse:
         return y
 
     def draw(self, node=None, depth=[], y=0, indexes=[]):
+        # Don't crash
+        if y >= curses.LINES:
+            return y
+
         # First call starts at root
         if node is None:
             node = self.container
@@ -90,13 +99,17 @@ class Curse:
             new_index.append(i)
 
             if not isinstance(child, str):
+                # Draw recurssive child
                 y = self.draw(child, new_depth, y, new_index)
+                # Add spacing between kids
+                if i != len(children)-1 and len(children):
+                    y = self.write_row(y, new_depth, indexes)
             else:
                 val = f"{child.capitalize():<{max_child_name}}: {node[i]}"
                 y = self.write_row(y, new_depth, new_index, val)
-
         return y
 
+    # ==== Get Information ====
     def get_selected(self, ind=None):
         # Get selected item at the index
         if ind is None:
@@ -114,6 +127,7 @@ class Curse:
                 bottom = True
         return obj, parent, bottom
 
+    # ==== Modification
     def add_to_selected(self, add, ind=None):
         # Adds new item to selected 
         if ind is None:
@@ -132,6 +146,31 @@ class Curse:
         selected.toggle()
         return
 
+    def edit_value(self):
+        curses.curs_set(True)
+        
+        # Let the user type a number and assign it to the value
+        # Center input 
+        # Add dynamic name instead of enter new val
+        self.stdscr.addstr(1, 15, "+-------------------------------+")
+        self.stdscr.addstr(2, 15, "| Enter new value:              |")
+        self.stdscr.addstr(3, 15, "+-------------------------------+")
+        self.stdscr.clrtoeol()
+        curses.echo()
+        input_str = self.stdscr.getstr(2, 35).decode()
+        curses.noecho()
+        try:
+            value = float(input_str) if '.' in input_str else int(input_str)
+            selected, parent, bottom = self.get_selected()
+            selected[self.index[-1]] = value
+        except ValueError:
+            pass  # Ignore invalid input
+        
+
+        curses.curs_set(False)
+        return
+
+    # ==== Main Loop ====
     def run(self):
         while True:
             # --- Run loop ---
@@ -177,12 +216,15 @@ class Curse:
                 self.add_to_selected(waveform.Waveform())
             
             # --- Modification ---
-            # TODO get curses KEY for tab
+            # TODO get curses KEY for tab since KEY_STAB and such doesn't work??
             elif c == 9:
                 self.toggle_selected()
             # --- Quit ---
             elif c == ord('q'):
                 break
+            # elif c == curses.KEY_ENTER:
+            elif c == ord('\n') and bottom:
+                self.edit_value()
         # We have a wrapper so we don't actually need to call this.
         # self.kill()
         return

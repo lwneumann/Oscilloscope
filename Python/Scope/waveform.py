@@ -42,6 +42,20 @@ class Waveform(Shape):
         elif i == 2:
             return self.offset
 
+    def __setitem__(self, i, v):
+        if isinstance(i, list) and len(i) == 1:
+            i = i[0]
+
+        if i >= len(self) or i < 0:
+            raise IndexError(f"Waveform index {i} is out of range")
+        elif i == 0:
+            self.samplerate = v
+        elif i == 1:
+            self.amplitude = v
+        elif i == 2:
+            self.offset = v
+        return
+
     def __len__(self):
         # 3 Parameters! We love magic numbers.
         # Mode is like name.
