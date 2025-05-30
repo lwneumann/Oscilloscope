@@ -1,4 +1,4 @@
-(Currently) this only lets you build
+(Currently) this only lets you build a tree and move around it. You can edit values too but not remove anything.
 
 # Useage
  - **q**          - Quits the application
