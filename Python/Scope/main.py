@@ -1,4 +1,5 @@
 import copy, curses
+# Internal
 import collection, waveform
 
 
@@ -11,6 +12,8 @@ class Curse:
         # index of [] is the root
         self.index = []
         self.container = collection.Collection("■", [collection.Collection()])
+        # y, x to be consistent with curses
+        self.size = [curses.LINES, curses.COLS]
         return
 
     # ==== Setup and Graphics ====
@@ -26,27 +29,7 @@ class Curse:
         # Enable keypad mode
         self.stdscr.keypad(True)
         # Turn off blinking cursor
-        # !!! WHEN DOING TEXT ENTRY RETURN THIS PROBABLY !!!
         curses.curs_set(False)
-        return
-
-    def kill(self):
-        """
-        This ideally attempts to return the terminal to a useable state when the program finishes.
-        We are using a wrapper so this is handled curses for us. During development the program 
-        ends through a crash a large portion of the time so this wouldn't be called anyway leading
-        to an unuseable terminal even though we made this.
-
-        It is being left in more for personal documentation for curses than usability.
-        """
-        # Turn enter back on for inputs
-        curses.nocbreak()
-        # Disable keypad
-        self.stdscr.keypad(False)
-        # Return echo
-        curses.echo()
-        # Go back to normal?
-        curses.endwin()
         return
 
     def write_row(self, y, depth, indexes, text=None):

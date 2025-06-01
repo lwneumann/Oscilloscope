@@ -1,7 +1,6 @@
 from enum import Enum
-from shape import Shape
 import sounddevice as sd
-
+import shape
 
 class wfMode(Enum):
     SAWTOOTH = 1
@@ -10,25 +9,16 @@ class wfMode(Enum):
     SQUARE = 4
 
 
-class Waveform(Shape):
-    def __init__(self, mode='SAWTOOTH', samplerate=0, amplitude=1, offset=0):
-        super().__init__()
+class Waveform(shape.ParamShape):
+    def __init__(self, mode='SAWTOOTH', samplerate=0, amplitude=1, phase=0):
+        super().__init__(modes=wfMode, parameter_names=['Samplerate', 'Amplitude', 'Phase'])
 
-        self.set_mode(mode)
         self.samplerate = samplerate
         self.amplitude = amplitude
-        self.offset = offset
-
-        self.parameter_names = ['Samplerate', 'Amplitude', 'Offset']
+        self.phase = phase
         return
 
-    # ==== Magic Methods ====
-    def __str__(self):
-        return self.mode.name
-
-    def __repr__(self):
-        return str(self)
-    
+    # ==== Magic Methods ====    
     def __getitem__(self, i):
         if isinstance(i, list) and len(i) == 1:
             i = i[0]
@@ -40,7 +30,7 @@ class Waveform(Shape):
         elif i == 1:
             return self.amplitude
         elif i == 2:
-            return self.offset
+            return self.phase
 
     def __setitem__(self, i, v):
         if isinstance(i, list) and len(i) == 1:
@@ -53,31 +43,5 @@ class Waveform(Shape):
         elif i == 1:
             self.amplitude = v
         elif i == 2:
-            self.offset = v
+            self.phase = v
         return
-
-    def __len__(self):
-        # 3 Parameters! We love magic numbers.
-        # Mode is like name.
-        return 3
-
-    # ==== Change Settings ====
-    def toggle(self):
-        # Cycle through modes
-        modes = list(wfMode)
-        self.mode = modes[(self.mode.value)%len(modes)]
-        return
-
-    def set_mode(self, m):
-        # Set mode explicitly
-        if m in [wf.name for wf in list(wfMode)]:
-            self.mode = wfMode[m]
-        elif m in [wf.value for wf in list(wfMode)]:
-            self.mode = wfMode(m)
-        else:
-            raise KeyError(f"{m} is not a valid wfMode key")
-        return
-
-    # ==== Graphics ====
-    def get_children(self):
-        return self.parameter_names

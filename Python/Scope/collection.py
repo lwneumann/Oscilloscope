@@ -1,7 +1,6 @@
 from enum import Enum
-from shape import Shape
 import random, string
-import waveform
+import waveform, seperator, shape
 
 
 class cMode(Enum):
@@ -10,20 +9,29 @@ class cMode(Enum):
     DUPLICATE = 3
 
 
-class Collection(Shape):
+class Collection(shape.Shape):
     def __init__(self, name=None, content=None, mode='PLUS'):
-        super().__init__()
+        # Get shape methods to ensure no crashes later from unused methods in Collection
+        super().__init__(modes=cMode)
         
+        # Name
+        # For not just random charecters but eventually I'll add this being relevant maybe?
+        # Or just remove it? But for the sake of shapes and such it is useful to have a name
+
         if name is None:
             self.name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(5))
         else:
             self.name = name
 
+        # Mode
         self.set_mode(mode)
         
+        # Collection
         self.collection = content
         if content is None:
             self.collection = [waveform.Waveform()]
+
+        self.seperator = None
         return
 
     # ===== Magic Methods ====
@@ -44,32 +52,22 @@ class Collection(Shape):
             else:
                 return self.collection[i[0]][i[1:]]
         else:
+            if self.seperator is not None and i == 0:
+                return self.seperator
             return self.collection[i]
     
     def __len__(self):
-        return len(self.collection)
+        # Length of internal collection + seperator if valid
+        return len(self.collection) + (self.seperator is not None)
 
     # ==== Change Settings ====
-    def toggle(self):
-        # Cycle through modes
-        modes = list(cMode)
-        self.mode = modes[(self.mode.value)%len(modes)]
-        return
-
     def add(self, other):
         self.collection.append(other)
         return
 
-    def set_mode(self, m):
-        # Set mode explicitly
-        if m in [wf.name for wf in list(cMode)]:
-            self.mode = cMode[m]
-        elif m in [wf.value for wf in list(cMode)]:
-            self.mode = cMode(m)
-        else:
-            raise KeyError(f"{m} is not a valid cMode key")
-        return
-
     # ==== Graphics ====
     def get_children(self):
-        return self.collection
+        if self.seperator is None:
+            return self.collection
+        else:
+            return [self.seperator.name].extend(self.collection)
