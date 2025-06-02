@@ -31,9 +31,15 @@ class Collection(shape.Shape):
         if content is None:
             self.collection = [waveform.Waveform()]
 
-        self.seperator = None
+        self.seperator = seperator.Seperator()
         return
 
+    # ==== 
+    def is_seperating(self):
+        # Duplicator mode is 3
+        # (See cMode)
+        return self.mode.value == 3
+    
     # ===== Magic Methods ====
     def __str__(self):
         mode_chr = ['+', 'x', 'D'][self.mode.value-1]
@@ -46,19 +52,28 @@ class Collection(shape.Shape):
         if i >= len(self) or i < 0:
             raise IndexError(f"Collection index {i} is out of range")
         
+        # Sometimes you get passed a list of indices which need to sink through the tree
         if isinstance(i, list):
+            # If the list is just one thing then just grab that thing.
             if len(i) == 1:
                 return self.collection[i[0]]
+            # Otherwise pass the remaining indices down the tree
             else:
                 return self.collection[i[0]][i[1:]]
+        # If there is just one value index accordingly
         else:
-            if self.seperator is not None and i == 0:
+            # If in seperator mode, allow indexing that
+            if self.is_seperating() and i == 0:
                 return self.seperator
-            return self.collection[i]
-    
+            # Otherwise index as normal
+            else:
+                # Shift the index back by one to account for the seperator when being used.
+                return self.collection[i if not self.is_seperating() else i-1]
+
     def __len__(self):
         # Length of internal collection + seperator if valid
-        return len(self.collection) + (self.seperator is not None)
+        return len(self.collection) + self.is_seperating()
+    
 
     # ==== Change Settings ====
     def add(self, other):
@@ -67,7 +82,7 @@ class Collection(shape.Shape):
 
     # ==== Graphics ====
     def get_children(self):
-        if self.seperator is None:
-            return self.collection
+        if self.is_seperating():
+            return [self.seperator] + self.collection
         else:
-            return [self.seperator.name].extend(self.collection)
+            return self.collection
