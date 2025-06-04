@@ -18,8 +18,6 @@ class Waveform(shape.ParamShape):
             start_mode=mode
         )
 
-        self.set_mode(mode)
-
         self.samplerate = samplerate
         self.amplitude = amplitude
         self.phase = phase

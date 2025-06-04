@@ -10,35 +10,34 @@ class cMode(Enum):
 
 
 class Collection(shape.Shape):
-    def __init__(self, name=None, content=None, mode='PLUS'):
+    def __init__(self, name=None, start_mode=None, content=None):
         # Get shape methods to ensure no crashes later from unused methods in Collection
-        super().__init__(modes=cMode)
+        super().__init__(
+            modes=cMode,
+            start_mode=start_mode    
+        )
         
         # Name
         # For not just random charecters but eventually I'll add this being relevant maybe?
         # Or just remove it? But for the sake of shapes and such it is useful to have a name
-
         if name is None:
             self.name = ''.join(random.choice(string.ascii_uppercase + string.digits) for _ in range(5))
         else:
             self.name = name
 
-        # Mode
-        self.set_mode(mode)
-        
         # Collection
         self.collection = content
         if content is None:
             self.collection = [waveform.Waveform()]
 
-        self.seperator = seperator.Seperator()
+        self.seperator = seperator.Seperator(parent=self)
         return
 
     # ==== 
     def is_seperating(self):
         # Duplicator mode is 3
         # (See cMode)
-        return self.mode.value == 3
+        return self.mode.name == "DUPLICATE"
     
     # ===== Magic Methods ====
     def __str__(self):

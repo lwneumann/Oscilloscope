@@ -1,3 +1,15 @@
+"""
+There are many instances you want to display multiple shapes at once not just combine the outputs.
+This displays multipl children by allocating normalized _t_ across the kids.
+
+Modes:
+ - Grid:
+    A grid of children. Debating how to deal with multiple different kids
+ - Orbit
+    Ring/orbit of chilren
+
+More to come probably.
+"""
 from enum import Enum
 import shape
 
@@ -8,7 +20,7 @@ class sMode(Enum):
 
 # ==== Seperator Modes ====
 class Orbit(shape.ParamShape):
-    def __init__(self   ):
+    def __init__(self):
         super().__init__(
             parameter_names=['Orbit Radius', 'Orbit Speed', 'Phase', 'Children Size'],
             index_map=['orbit_r', 'orbit_speed', 'phase', 'children_size']
@@ -19,6 +31,7 @@ class Orbit(shape.ParamShape):
         self.phase = 0
         # Scale of children
         self.children_size = 0.3
+        # TODO add orientation / upright vs ring around the center
         return
 
 
@@ -38,11 +51,14 @@ class Grid(shape.ParamShape):
 
 # ==== Actual Seperator Class ====
 class Seperator(shape.Shape):
-    def __init__(self, start_mode=None):
+    def __init__(self, parent, start_mode=None):
         super().__init__(
             modes=sMode,
             start_mode=start_mode
         )
+
+        # Grid size and so on need to know how many children there are in order to dynamically adjust accodingly
+        self.parent = parent
 
         self.seperators = [
             Orbit(),

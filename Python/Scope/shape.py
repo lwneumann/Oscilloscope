@@ -28,7 +28,7 @@ class Shape:
     def __repr__(self):
         return str(self)
 
-    # ==== Change Settings ====
+    # ====
     def set_mode(self, m):
         # Set mode explicitly
         if m in [mode.name for mode in list(self.enumModes)]:
