@@ -1,7 +1,23 @@
+# Consider for control hotkeys but think about this a lot
+# since ctrl c is not useable...
+# def ctrl(ch):
+#     return ord(ch) & 0x1f
 import copy, curses
 # Internal
 import collection, waveform
 
+
+# === Keystrokes detection ===
+# Curses don't detect multiple presses but you can check for something like this
+def ctrl(ch):
+    return ord(ch) & 0x1f
+
+def shift(key):
+    """
+    Detect if the key code corresponds to a shifted letter (A-Z).
+    In curses, uppercase letters (shifted) have ASCII codes 65-90.
+    """
+    return 65 <= key <= 90
 
 class Curse:
     def __init__(self):
@@ -20,7 +36,8 @@ class Curse:
         # This is the size of the window to be used for placing some graphics
         # y, x to be consistent with curses
         self.size = [curses.LINES, curses.COLS]
-        # Highligted or selected trees
+        # Highlights for selecting terms
+        self.highlights = []
         return
 
     # ==== Setup and Graphics ====
@@ -39,23 +56,26 @@ class Curse:
         curses.curs_set(False)
         return
 
-    def write_row(self, y, depth, indexes, text=None, highlighted=False):
+    def write_row(self, y, depth, indexes, text=None):
         # Don't crash
         if y >= curses.LINES:
             return y
         
+        # Ensure that the index is at least as deep as the highlight and that the current index is highlighted
+        highlighted = len(indexes) >= len(self.highlights) > 0 and indexes[:len(self.highlights)] == self.highlights
+
         # If text is None, just write an empty row
         x = 1
         for i, d in enumerate(depth):
             # Depth of value
             if i == len(depth)-1 and text is not None:
-                if highlighted:
+                if highlighted and i > len(self.highlights)-1:
                     self.stdscr.addstr(y, x, "├" if d else "└", curses.A_STANDOUT)
                 else:
                     self.stdscr.addstr(y, x, "├" if d else "└")
             # Bars underneath
             else:
-                if highlighted:
+                if highlighted and i > len(self.highlights)-1:
                     self.stdscr.addstr(y, x, "|" if d else "", curses.A_STANDOUT)
                 else:
                     self.stdscr.addstr(y, x, "|" if d else "")
@@ -66,7 +86,10 @@ class Curse:
             # If selected
             if self.index == indexes:
                 self.stdscr.addch(y, x-1, curses.ACS_RARROW, curses.A_BOLD)
-            self.stdscr.addstr(y, x, text)
+            if highlighted:
+                self.stdscr.addstr(y, x, text, curses.A_STANDOUT)
+            else:
+                self.stdscr.addstr(y, x, text)
         y += 1
         return y
 
@@ -212,8 +235,16 @@ class Curse:
             elif c == ord('w'):
                 self.add_to_selected(waveform.Waveform())
             
+            # --- General Controls ---
+            # Highlight selected
+            elif c == ord('S'):
+                if self.highlights is None or self.highlights != self.index:
+                    self.highlights = copy.deepcopy(self.index)
+                else:
+                    self.highlights = []
+
             # --- Modification ---
-            # TODO get curses KEY for tab since KEY_STAB and such doesn't work??
+            # TODO get curses KEY for tab since KEY_STAB and such doesn't work?
             elif c == 9:
                 self.toggle_selected()
                 # You will be indexing the selected node you are toggling so reset index to
