@@ -1,5 +1,8 @@
-from enum import Enum
+import copy
 import random, string
+import numpy as np
+from enum import Enum
+from math import ceil
 import waveform, seperator, shape
 
 
@@ -10,13 +13,18 @@ class cMode(Enum):
 
 
 class Collection(shape.Shape):
-    def __init__(self, name=None, start_mode=None, content=None):
+    def __init__(self, name=None,
+                 start_mode=None,
+                 content=None,
+                 start_seperator=None,
+                 driver=None):
         # Get shape methods to ensure no crashes later from unused methods in Collection
         super().__init__(
             modes=cMode,
-            start_mode=start_mode    
+            start_mode=start_mode,
+            driver=driver
         )
-        
+
         # Name
         # For not just random charecters but eventually I'll add this being relevant maybe?
         # Or just remove it? But for the sake of shapes and such it is useful to have a name
@@ -25,12 +33,14 @@ class Collection(shape.Shape):
         else:
             self.name = name
 
-        # Collection
+        # Collection of other shapes and components
         self.collection = content
         if content is None:
             self.collection = [waveform.Waveform()]
 
-        self.seperator = seperator.Seperator(parent=self)
+        self.seperator = start_seperator
+        if start_seperator is None:
+            self.seperator = seperator.Seperator(parent=self, start_mode='GRID')
         return
 
     # ==== 
@@ -70,13 +80,38 @@ class Collection(shape.Shape):
                 return self.collection[i if not self.is_seperating() else i-1]
 
     def __len__(self):
-        # Length of internal collection + seperator if valid
-        return len(self.collection) + self.is_seperating()
-    
+        # If collapsed, then just return the collpased icon else
+        # Length of seperator + internal collection + driver if present
+        base_len = 1
+        if not self.collapsed:
+            base_len = self.is_seperating() + len(self.collection) + (self.driver is not None)
+        return base_len
+
+    # TODO fix this :)
+    # Need to add deepcopy everywhere
+    # def __deepcopy__(self, memo):
+    #     copied_collection = copy.deepcopy(self.collection, memo)
+    #     copied_seperator = copy.deepcopy(self.seperator, memo)
+    #     return Collection(
+    #         name=self.name,
+    #         start_mode=self.mode.value,
+    #         content=copied_collection,
+    #         start_seperator=copied_seperator
+    #     )
 
     # ==== Change Settings ====
     def add(self, other):
         self.collection.append(other)
+        return
+
+    def set_all_collapse(self, c):
+        # Sets the collapse of all of its children
+        self.seperator.set_collapse(c)
+        for child in self.collection:
+            if hasattr(child, "set_all_collapse"):
+                child.set_all_collapse(c)
+            child.set_collapse(c)
+        self.set_collapse(c)
         return
 
     # ==== Graphics ====
@@ -85,3 +120,42 @@ class Collection(shape.Shape):
             return [self.seperator] + self.collection
         else:
             return self.collection
+
+    # =====================
+    # === Functionality ===
+    # =====================
+    def divide_time(self, t):
+        """
+        Divide t into equal-length chunks for each child.
+        Each chunk includes the start and end of t, and a subset of values from the middle.
+        Returns a list of t_sub arrays, one for each child.
+        """
+        number_of_children = len(self.collection)
+        if number_of_children == 0:
+            # TODO is this how this should be done?
+            return []
+
+        chunk_size = ceil(len(t) / number_of_children)
+        
+        child_chunk = np.linspace(
+              start=t[0],
+              stop=t[-1],
+              num=chunk_size
+        )
+
+        chunks = [ child_chunk for _ in range(number_of_children) ]
+
+        # Remove elements from the end of each chunk so that the total number of elements in all chunks equals len(t)
+        c_i = 0
+        total = sum(len(chunk) for chunk in chunks)
+        while total > len(t):
+            if len(chunks[c_i]) > 2:
+                chunks[c_i] = np.delete(chunks[c_i], -2)
+            total -= 1
+            c_i = (c_i + 1) % number_of_children
+
+        return chunks
+
+    def compute_buffer(self, t):
+
+        return

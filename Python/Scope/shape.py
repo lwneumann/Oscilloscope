@@ -12,10 +12,15 @@ get_children - In case the object gets called by draw on accident this catches t
 # A shape is anything that has an Enum mode selector
 # WITHOUT generic internal parameters.
 class Shape:
-    def __init__(self, modes=None, start_mode=None):
+    def __init__(self, modes=None, start_mode=None, collapsed=False, driver=None):
+        self.enumModes = modes
         if modes is not None:
-            self.enumModes = modes
             self.set_mode(start_mode or 1)
+        # Collapsed
+        self.collapsed = collapsed
+        
+        # Often a shape or shapes will have a waveform driver to direct the behavior of its internals.
+        self.driver = driver
         return
     
     # ==== Magic Methods ====
@@ -30,31 +35,55 @@ class Shape:
 
     # ====
     def set_mode(self, m):
-        # Set mode explicitly
-        if m in [mode.name for mode in list(self.enumModes)]:
-            self.mode = self.enumModes[m]
-        elif m in [mode.value for mode in list(self.enumModes)]:
-            self.mode = self.enumModes(m)
-        else:
-            raise KeyError(f"{m} is not a valid {self.enumModes.__name__} key")
+        if self.enumModes is not None:
+            # Set mode explicitly
+            if m in [mode.name for mode in list(self.enumModes)]:
+                self.mode = self.enumModes[m]
+            elif m in [mode.value for mode in list(self.enumModes)]:
+                self.mode = self.enumModes(m)
+            else:
+                raise KeyError(f"{m} is not a valid {self.enumModes.__name__} key")
         return
     
     def toggle(self):
-        # Cycle through modes
-        modes = list(self.enumModes)
-        self.mode = modes[(self.mode.value)%len(modes)]
+        if self.enumModes is not None:
+            # Cycle through modes
+            modes = list(self.enumModes)
+            self.mode = modes[(self.mode.value)%len(modes)]
+        return
+
+    def toggle_collapse(self):
+        # Toggle collapsed children
+        self.collapsed = not self.collapsed
+        return
+
+    def set_collapse(self, c):
+        # Explicitly set collapse
+        self.collapsed = c
         return
 
     # ==== Graphics ====
     def get_children(self):
         return []
 
+    # =====================
+    # === Functionality ===
+    # =====================
+    def compute_buffer(self, t):
+        # TODO
+        if self.driver is not None:
+            self.driver.do_something()
+        return
+
 
 # This is an extended shape class with internal parameters.
 class ParamShape(Shape):
-    def __init__(self, modes=None, parameter_names=[], index_map=[], start_mode=None):
-        super().__init__(modes, start_mode)
+    def __init__(self, modes=None, parameter_names=[], index_map=[], start_mode=None, collapsed=False, driver=None):
+        super().__init__(modes, start_mode, collapsed, driver)
+        # This orders the names of the attributes for displaying their names.
+        # Maybe switch to a [ [name, var], \dots ] at some point?
         self.parameter_names = parameter_names
+        # This orders the actual attributes as indexable values from __{get, set}item__
         self._index_map = index_map
         return
 
@@ -77,11 +106,24 @@ class ParamShape(Shape):
         if i >= len(self) or i < 0:
             raise IndexError(f"{self.__class__.__name__} index {i} is out of range")
         
-        setattr(self, self._index_map[i], v)
+        # Get the selected value from the index map or the driver if that is a thing
+        if self.driver is not None:
+            if i == 0:
+                obj = self.driver
+            else:
+                obj = self._index_map[i+1]
+        else:
+            obj = self._index_map[i]
+
+        setattr(self, obj, v)
         return
 
     def __len__(self):
-        return len(self._index_map)
+        base_len = 1
+        # If not collapsed actually get len
+        if not self.collapsed:
+            base_len = len(self._index_map) + (self.driver is not None)
+        return base_len
     
     # ==== Graphics ====
     def get_children(self):

@@ -20,10 +20,11 @@ class sMode(Enum):
 
 # ==== Seperator Modes ====
 class Orbit(shape.ParamShape):
-    def __init__(self):
+    def __init__(self, driver=None):
         super().__init__(
             parameter_names=['Orbit Radius', 'Orbit Speed', 'Phase', 'Children Size'],
-            index_map=['orbit_r', 'orbit_speed', 'phase', 'children_size']
+            index_map=['orbit_r', 'orbit_speed', 'phase', 'children_size'],
+            driver=driver
         )
 
         self.orbit_r = 0.5
@@ -36,14 +37,15 @@ class Orbit(shape.ParamShape):
 
 
 class Grid(shape.ParamShape):
-    def __init__(self):
+    def __init__(self, driver=None):
         super().__init__(
             parameter_names=['Grid Size', 'Buffer'],
-            index_map=['grid_size', 'buffer']
+            index_map=['grid_size', 'buffer'],
+            driver=driver
         )
 
         # Grid size - n x n
-        self.grid_size = 2
+        self.grid_size = 1
         # How much space is between each shape and the edge
         self.buffer = 0.1
         return
@@ -51,15 +53,17 @@ class Grid(shape.ParamShape):
 
 # ==== Actual Seperator Class ====
 class Seperator(shape.Shape):
-    def __init__(self, parent, start_mode=None):
+    def __init__(self, parent, start_mode=None, driver=None):
         super().__init__(
             modes=sMode,
-            start_mode=start_mode
+            start_mode=start_mode,
+            driver=driver
         )
 
         # Grid size and so on need to know how many children there are in order to dynamically adjust accodingly
         self.parent = parent
 
+        # List of all types of seperators for the collection
         self.seperators = [
             Orbit(),
             Grid()
@@ -68,6 +72,7 @@ class Seperator(shape.Shape):
 
     # ====
     def selected(self):
+        # Get the selected seperator
         return self.seperators[self.mode.value-1]
 
     # ==== Magic Methods ====
@@ -81,9 +86,20 @@ class Seperator(shape.Shape):
         return
 
     def __len__(self):
-        return len(self.selected())
+        base_len = 1
+        # If not collapsed actually get len
+        if not self.collapsed:
+            base_len = len(self.selected()) + (self.driver is not None)
+        return base_len
 
     # ==== Graphics ====
     def get_children(self):
         # Select the stored seperators children based on the mode
         return self.selected().get_children()
+
+    # =====================
+    # === Functionality ===
+    # =====================
+    def compute_buffer(self, t):
+
+        return

@@ -9,8 +9,24 @@
  - **Enter**      - Edits the value of a selected parameter (if numeric)
  - **Arrow keys** - Navigate the tree
 
-# Known Issues
-This is still a work in progress so there are some issues and functionality that may not work although not intended I just am focusing on other parts for now and will get to them eventually :p
 
- - Once you fill up past the screen you can't get down there. No scrolling for you.
- - No deleting either :)
+
+[Virtual cable](https://vb-audio.com/Cable/)
+
+# --- TODO ---
+Handle hotkey actions
+Global
+- cut
+- copy
+- paste
+- move
+- delete
+- change
+- duplicate
+- Binding variables
+- Constants
+- Layer Jumping - bottom index and parallel jumping
+special
+- Parameter edit hotkeys (first letter? Unsure unique)
+- ensure no overlap with keys
+- Allow pi to be entered as a value
