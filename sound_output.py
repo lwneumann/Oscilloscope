@@ -48,6 +48,7 @@ class SoundOutput:
         with self.sound_buffer.lock:
             if status:
                 self.sound_buffer.status.append(status)
+                print(status)
             if self.sound_buffer.compute_buffer is not None:
                 x, y, z = self.sound_buffer.compute_buffer(t)
             else:

@@ -46,7 +46,7 @@ class Shape:
         if self.enumModes is not None:
             # Cycle through modes
             modes = list(self.enumModes)
-            self.mode = modes[(self.mode.value)%len(modes)]
+            self.set_mode(modes[(self.mode.value)%len(modes)].name)
         return
 
     def toggle_collapse(self):
@@ -75,24 +75,26 @@ class Shape:
 # This is an extended shape class with internal parameters.
 class ParamShape(Shape):
     def __init__(self, modes=None, parameter_names=[], index_map=[], start_mode=None, collapsed=False):
-        super().__init__(modes, start_mode, collapsed)
-        # This orders the names of the attributes for displaying their names.
-        # Maybe switch to a [ [name, var], \dots ] at some point?
+        # This is the display name for the parameter since they can be different
+        # also made to look nicer or have different names than the actual value
         self.parameter_names = parameter_names
         # This orders the actual attributes as indexable values from __{get, set}item__
-        self._index_map = index_map
+        self.index_map = index_map
+        
+        # Setup rest of the shape
+        super().__init__(modes, start_mode, collapsed)
         return
 
     # ==== Magic Methods
     def __getitem__(self, i):
-        # Indexing from main and recurrsive indexing from collection is dicey so clear this just in case
+        # Indexing from graphics and recurrsive indexing from collection is dicey so clear this just in case
         if isinstance(i, list) and len(i) == 1:
             i = i[0]
 
         if i >= len(self) or i < 0:
             raise IndexError(f"{self.__class__.__name__} index {i} is out of range")
         
-        return getattr(self, self._index_map[i])
+        return getattr(self, self.index_map[i])
 
     def __setitem__(self, i, v):
         # Indexing from main and recurrsive indexing from collection is dicey so clear this just in case
@@ -102,7 +104,7 @@ class ParamShape(Shape):
         if i >= len(self) or i < 0:
             raise IndexError(f"{self.__class__.__name__} index {i} is out of range")
         
-        obj = self._index_map[i]
+        obj = self.index_map[i]
 
         setattr(self, obj, v)
         return
@@ -111,7 +113,7 @@ class ParamShape(Shape):
         base_len = 1
         # If not collapsed actually get len
         if not self.collapsed:
-            base_len = len(self._index_map)
+            base_len = len(self.index_map)
         return base_len
     
     # ==== Graphics ====

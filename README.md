@@ -13,8 +13,8 @@ WIP! I will update this soon.
 
 [Virtual cable](https://vb-audio.com/Cable/)
 
-# --- TODO ---
-Handle hotkey actions
+# === TODO ===
+- Handle hotkey actions
 Global
 - cut
 - copy

@@ -40,8 +40,10 @@ class Curse:
         self.starting_tree_y = 1
         self.variable_title = 'Variables'
         self.starting_variable_y = 1
-        self.variable_offset = curses.COLS - 20
+        self.variable_offset = curses.COLS - 30
         self.input_width = 31
+        self.float_round_place = 5
+        self.runtime_rounding = 2
 
         # --- Internal ---
         # index of [] is the root
@@ -208,7 +210,7 @@ class Curse:
             y=self.starting_variable_y,
             variable_menu=True)
         # Runtime
-        runtime_text = f"Total Runtime: {round(self.runtime, 2)}"
+        runtime_text = f"Total Runtime: {round(self.runtime, self.runtime_rounding)}"
         self.stdscr.addstr(curses.LINES-2, curses.COLS-len(runtime_text), runtime_text)
         return
 
@@ -257,7 +259,7 @@ class Curse:
             new_depth.append(i != len(children)-1)
             new_index.append(i)
 
-            if not isinstance(child, str):
+            if not isinstance(child, (int, float, str)):
                 # Draw recurssive child
                 y = self.draw_tree(
                     ind=ind,
@@ -275,7 +277,15 @@ class Curse:
                     val = child
                 # otherwise draw children as usual
                 else:
+                    # get said child
                     val = node[i]
+                    # Round floats nicely
+                    if isinstance(val, float):
+                        val = round(val, self.float_round_place)
+                    # If it isnt a float (above) or an int (below) then it must be a variable
+                    elif not isinstance(val, int):
+                        val = val.name
+
                     text = child if variable_menu else child.capitalize()
                     val = f"{text:<{max_child_name}}: {val}"
                 y = self.write_row(y, ind, new_depth, new_index, val, x_offset=x_offset)
@@ -298,14 +308,16 @@ class Curse:
         obj = self.variables if is_varaible else self.container
         parent = obj
         for i in ind:
-            # Bottomed out or collapsed
-            if type(obj[i]) in [int, float] or obj.collapsed:
+            # Bottomed out or collapsed or a variable
+            is_number = isinstance(obj[i], (int, float))
+            is_bound_variable = hasattr(obj[i], "is_a_variable") and not self.in_variable_menu
+            if any([is_number, obj.collapsed, is_bound_variable]):
                 bottom = True
+                break
             # If not keep going in
             else:
                 parent = obj
                 obj = obj[i]
-
         return obj, parent, bottom
 
     # ==== Modification
@@ -314,7 +326,8 @@ class Curse:
         if ind is None:
             ind = self.index
 
-        selected, parent, bottom = self.get_selected(ind)
+        selected, parent, bottom = self.get_selected(self.in_variable_menu, ind)
+
         if isinstance(selected, collection.Collection):
             selected.add(add)
         elif len(ind) > 1:
@@ -354,9 +367,7 @@ class Curse:
             value = float(input_str) if '.' in input_str else int(input_str)
             selected, parent, bottom = self.get_selected(self.in_variable_menu)
             if self.in_variable_menu:
-                print(self.variable_index)
-                self.variables[self.variable_index[-1]] = value
-                print(self.variables.variables)
+                self.variables[self.variable_index] = value
             else:
                 selected[self.index[-1]] = value
         except ValueError:
@@ -393,12 +404,12 @@ class Curse:
         return
 
     def bind_variable(self):
-        # Discard other returns                      |
-        #                                            V
-        param = self.get_selected(is_varaible=False)[0]
+        param, parent, bottom = self.get_selected(is_varaible=False)
         variable = self.variables[self.variable_index[0]]
 
         try:
+            if isinstance(param, collection.Collection):
+                param = parent
             param[self.index[-1]] = variable
         except ValueError:
             pass
@@ -432,6 +443,7 @@ class Curse:
             # === Global Hotkeys ===
             selected_index = self.get_index(self.in_variable_menu)
             selected, parent, bottom = self.get_selected(self.in_variable_menu)
+
             # Switch menus
             if c in self.hotkey_map['TOGGLEVARIABLE']:
                 self.in_variable_menu = not self.in_variable_menu
@@ -463,8 +475,15 @@ class Curse:
             elif c in self.hotkey_map['JUMPROOT']:
                 selected_index = []
             # === Modification ===
+            # Edit
             elif c in self.hotkey_map['EDIT'] and bottom:
                     self.edit_value()
+            # Toggle
+            # TODO get curses KEY for tab since KEY_STAB and such doesn't work?
+            elif c in self.hotkey_map['TOGGLE']:
+                deselect = True
+                self.toggle_selected()
+                self.soft_reset_index(bottom)
 
             # === Variable Menu ===
             if self.in_variable_menu:
@@ -511,11 +530,6 @@ class Curse:
                 # ---
 
                 # === Modification ===
-                # TODO get curses KEY for tab since KEY_STAB and such doesn't work?
-                elif c in self.hotkey_map['TOGGLE']:
-                    deselect = True
-                    self.toggle_selected()
-                    self.soft_reset_index(bottom)
                 elif c in self.hotkey_map['BINDVARIABLE'] and len(self.variable_index) > 0:
                     self.bind_variable()
 

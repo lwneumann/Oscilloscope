@@ -15,35 +15,42 @@ class Waveform(shapes.ParamShape):
     def __init__(self,
                  mode='SIN',
                  frequency=440,
-                 period=None,
                  amplitude=1,
                  phase=0):
+        # When constant, these are the names and maps instead.
+        # Named other because they hot swap with parameter_names and index_map as needed.
+        self.other_name = ['Value']
+        self.other_map = ['amplitude']
+
         super().__init__(
             modes=wfMode,
-            parameter_names=['Frequency', 'Period', 'Amplitude', 'Phase'],
-            index_map=['frequency', 'period', 'amplitude', 'phase'],
+            parameter_names=['Frequency', 'Amplitude', 'Phase'],
+            index_map=['frequency', 'amplitude', 'phase'],
             start_mode=mode
         )
 
         self.frequency = frequency
-        self.period = period if period is not None else 1/frequency
         self.amplitude = amplitude
         self.phase = phase
         return
 
-    def __setitem__(self, i, v):
-        # Updates chained variables if needed by definition:
-        # period = 1/frequency and frequency = 1/period
-        selected_index = self._index_map[i]
-        if selected_index in ['period', 'frequency']:
-            # Prevent illegal input
-            if v == 0:
-                return
-            # Update other value
-            other_index = self._index_map.index('period' if selected_index=='frequency' else 'frequency')
-            super().__setitem__(other_index, 1/v)
-        # Update value
-        super().__setitem__(i, v)
+    # ===
+    def swap_maps(self):
+        # Constants only use their value and nothing else so we don't display other things
+        self.parameter_names, self.other_name = self.other_name, self.parameter_names
+        self.index_map, self.other_map = self.other_map, self.index_map
+        return
+
+    # === Magic Methods ===
+    def set_mode(self, m):
+        # Switch off (skip this during initialization)
+        if hasattr(self, 'mode') and self.mode.name == "CONSTANT":
+            self.swap_maps()
+        # Set value
+        super().set_mode(m)
+        # Switch on
+        if self.mode.name == "CONSTANT":
+            self.swap_maps()
         return
 
     # =====================
@@ -55,6 +62,15 @@ class Waveform(shapes.ParamShape):
         amp = self.amplitude
         freq = self.frequency
         mode = self.mode.name
+
+        # Pass variable values if they are variables
+        # You cannot bind to mode
+        if hasattr(phase, 'compute_buffer'):
+            phase = phase.compute_buffer(t)
+        if hasattr(amp, 'compute_buffer'):
+            amp = amp.compute_buffer(t)
+        if hasattr(freq, 'compute_buffer'):
+            freq = freq.compute_buffer(t)
 
         # Generate the waveform
         if mode == 'SIN':

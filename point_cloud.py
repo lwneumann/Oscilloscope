@@ -77,7 +77,11 @@ class PointCloud(shapes.Shape):
         # z
         if z is None:
             self.z = collection.Collection(
-                name='Z'
+                name='Z',
+                content=[waveform.Waveform(
+                        mode='CONSTANT',
+                        amplitude=0
+                    )]
             )
         else:
             self.z = z
