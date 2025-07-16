@@ -4,6 +4,7 @@ import numpy as np
 from enum import Enum
 from math import ceil
 import waveform, seperator, shapes
+import utils
 
 
 class cdMode(Enum):
@@ -129,38 +130,6 @@ class Collection(shapes.Shape):
     # =====================
     # === Functionality ===
     # =====================
-    def divide_time(self, t):
-        """
-        Divide t into equal-length chunks for each child.
-        Each chunk includes the start and end of t, and a subset of values from the middle.
-        Returns a list of t_sub arrays, one for each child.
-        """
-        number_of_children = len(self.collection)
-        if number_of_children == 0:
-            # TODO is this how this should be done?
-            return []
-
-        chunk_size = ceil(len(t) / number_of_children)
-        
-        child_chunk = np.linspace(
-              start=t[0],
-              stop=t[-1],
-              num=chunk_size
-        )
-
-        chunks = [ child_chunk for _ in range(number_of_children) ]
-
-        # Remove elements from the end of each chunk so that the total number of elements in all chunks equals len(t)
-        c_i = 0
-        total = sum(len(chunk) for chunk in chunks)
-        while total > len(t):
-            if len(chunks[c_i]) > 2:
-                chunks[c_i] = np.delete(chunks[c_i], -2)
-            total -= 1
-            c_i = (c_i + 1) % number_of_children
-
-        return chunks
-
     def compute_buffer(self, t):
         if self.mode.name in ["PLUS", "TIMES"]:
             # Compute each child's buffer
@@ -177,7 +146,7 @@ class Collection(shapes.Shape):
                 buffer = np.prod(stacked, axis=0)
         # Duplicate across children
         elif self.mode.name == "DUPLICATE":
-            children_chunks = self.divide_time(t)
+            children_chunks = utils.divide_time(len(self.collection), t)
             buffers = [child.compute_buffer(children_chunks[i]) for i, child in enumerate(self.collection)]
             buffer = self.seperator.seperate_children(buffers)
         return buffer

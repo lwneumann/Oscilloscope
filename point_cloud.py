@@ -1,40 +1,9 @@
+import numpy as np
 from enum import Enum
 from math import sin, cos
 import random, string
+import utils
 import collection, waveform, seperator, shapes
-import numpy as np
-
-
-class Rotator(shapes.ParamShape):
-    def __init__(self, modes=None, collapsed=True):
-        super().__init__(
-            modes,
-            collapsed=collapsed,
-            parameter_names=['dx', 'dy', 'dz', 'Tilt x', 'Tilt y', 'Tilt z'],
-            index_map=['dx', 'dy', 'dz', 'tilt_x', 'tilt_y', 'tilt_z']
-        )
-
-        self.dx = 0
-        self.dy = 0
-        self.dz = 0
-        self.tilt_x = 0
-        self.tilt_y = 0
-        self.tilt_z = 0
-        return
-
-    def rotate_points(self, x, y, z):
-        y_x = y * np.cos(self.tilt_x) - z * np.sin(self.tilt_x)
-        z_x = y * np.sin(self.tilt_x) + z * np.cos(self.tilt_x)
-        x_y = x * np.cos(self.tilt_y) + z_x * np.sin(self.tilt_y)
-        z_y = -x * np.sin(self.tilt_y) + z_x * np.cos(self.tilt_y)
-        x_z = x_y * np.cos(self.tilt_z) - y_x * np.sin(self.tilt_z)
-        y_z = x_y * np.sin(self.tilt_z) + y_x * np.cos(self.tilt_z)
-
-        self.tilt_x += self.dx
-        self.tilt_y += self.dy
-        self.tilt_z += self.dz
-
-        return x_z, y_z, z_y
 
 
 # This is nearly identical to collection but is always in duplicate mode, and 
@@ -55,7 +24,7 @@ class PointCloud(shapes.Shape):
         # --- Internal Data ---
         self.seperator = seperator.Seperator(parent=self, start_mode='GRID')
         
-        self.rotator = Rotator()
+        self.rotator = utils.Rotator()
 
         # x
         if x is None:
@@ -158,8 +127,11 @@ class PointCloud(shapes.Shape):
     # === Functionality ===
     # =====================
     def compute_buffer(self, t):
-        # For now we ignore z
+        # Get points
         x = self.x.compute_buffer(t)
         y = self.y.compute_buffer(t)
         z = self.z.compute_buffer(t)
-        return self.rotator.rotate_points(x, y, z)
+        # Rotate points
+        rotated_buffer = self.rotator.rotate_points(x, y, z)
+        # Apply seperator
+        return self.seperator.duplicate_child(rotated_buffer)

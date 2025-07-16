@@ -10,8 +10,10 @@ Modes:
 
 More to come probably.
 """
+import numpy as np
 from enum import Enum
 import shapes
+import utils
 
 
 class sMode(Enum):
@@ -38,20 +40,60 @@ class Orbit(shapes.ParamShape):
 class Grid(shapes.ParamShape):
     def __init__(self):
         super().__init__(
-            parameter_names=['Grid Size', 'Buffer'],
-            index_map=['grid_size', 'buffer']
+            parameter_names=['Grid Size', 'Edge Buffer', 'Rescale'],
+            index_map=['grid_size', 'edge_buffer', 'rescale']
         )
 
         # Grid size - n x n
         self.grid_size = 1
         # How much space is between each shape and the edge
-        self.buffer = 0.1
+        self.edge_buffer = 0.5
+        # Rescale children to the grid size
+        self.rescale = 1
         return
 
     # === Functionality ===
     def seperate_children(self, child_buffers):
         return child_buffers
 
+    def duplicate_buffer(self, buffer):
+        # Ensure legal grid size
+        if self.grid_size < 1:
+            self.grid_size = 1
+        # Get Grid
+        n = self.grid_size
+        if n == 1:
+            return buffer
+        # Rescale
+        if self.rescale:
+            buffer[0] *= 1/n
+            buffer[1] *= 1/n
+            buffer[2] *= 1/n
+
+        # buffer: [x, y, z], each is a 1D array
+        # Split each axis into n*n segments
+        chunks = utils.divide_time(n * n, buffer)
+        grid_step = (2 - 2 * self.edge_buffer) / (n - 1)
+        
+        # Shift chunks
+        for r in range(n):
+            for c in range(n):
+                # Get shift (for now this is just a grid on the xy plane)
+                x_shift = self.edge_buffer + c * grid_step - 1
+                y_shift = self.edge_buffer + r * grid_step - 1
+                
+                # Get chunk index and shift the x, y
+                idx = r * n + c
+
+                chunks[0][idx] += x_shift
+                chunks[1][idx] += y_shift
+        
+        # Recombine shifted chunks
+        x = np.concatenate(chunks[0])
+        y = np.concatenate(chunks[1])
+        z = np.concatenate(chunks[2])
+        shifted_buffer = np.stack([x, y, z], axis=0)
+        return shifted_buffer
 
 
 # ==== Actual Seperator Class ====
@@ -105,3 +147,7 @@ class Seperator(shapes.Shape):
     def seperate_children(self, child_buffers):
         # Let the selected duplicator seperate the children accordingly
         return self.selected().seperate_children(child_buffers)
+
+    def duplicate_child(self, buffer):
+        # Duplicate buffer
+        return self.selected().duplicate_buffer(buffer)
