@@ -12,8 +12,7 @@ More to come probably.
 """
 import numpy as np
 from enum import Enum
-import shapes
-import utils
+from internals import shapes, utils
 
 
 class sMode(Enum):

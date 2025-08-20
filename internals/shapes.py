@@ -66,9 +66,13 @@ class Shape:
     # =====================
     # === Functionality ===
     # =====================
+    # These are added here so you can call them without worring about crashing
     def compute_buffer(self, t):
-        # TODO
-        
+        # Implemet above
+        return
+    
+    def pop(self, i):
+        # Implement above
         return
 
 

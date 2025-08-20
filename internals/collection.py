@@ -3,18 +3,17 @@ import random, string
 import numpy as np
 from enum import Enum
 from math import ceil
-import waveform, seperator, shapes
-import utils
+from internals import waveform, seperator, shapes, utils
 
 
 class cdMode(Enum):
-    PLUS = 1
-    TIMES = 2
+    TIMES = 1
+    PLUS = 2
     DUPLICATE = 3
 
 class cMode(Enum):
-    PLUS = 1
-    TIMES = 2
+    TIMES = 1
+    PLUS = 2
 
 
 class Collection(shapes.Shape):
@@ -39,10 +38,15 @@ class Collection(shapes.Shape):
         else:
             self.name = name
 
+        self.mode_labels = ['x', '+', 'D']
+
         # Collection of other shapes and components
-        self.collection = content
-        if content is None:
+        if isinstance(content, list):
+            self.collection = content
+        elif content is None:
             self.collection = [waveform.Waveform()]
+        else:
+            self.collection = [content]
 
         self.seperator = start_seperator
         if start_seperator is None:
@@ -57,7 +61,7 @@ class Collection(shapes.Shape):
     
     # ===== Magic Methods ====
     def __str__(self):
-        mode_chr = ['+', 'x', 'D'][self.mode.value-1]
+        mode_chr = self.mode_labels[self.mode.value-1]
         return f"{mode_chr}: {self.name}"
     
     def __repr__(self):
@@ -85,6 +89,17 @@ class Collection(shapes.Shape):
                 # Shift the index back to account for the seperator when being used.
                 return self.collection[i if not self.is_seperating() else i-1]
 
+    def __setitem__(self, i, v):
+        """
+        Only allow setitem for the collection itself not parameters for now
+        """
+        # Seperator is index 0 so only allow [self.is_seperating(), len(self)]
+        if self.is_seperating() < i >= len(self):
+            raise IndexError(f"{self.__class__.__name__} index {i} is out of range")
+
+        self.collection[i - self.is_seperating()] = v
+        return
+
     def __len__(self):
         # If collapsed, then just return the collpased icon else
         # Length of seperator + internal collection
@@ -106,7 +121,7 @@ class Collection(shapes.Shape):
     #     )
 
     # ==== Change Settings ====
-    def add(self, other):
+    def append(self, other):
         self.collection.append(other)
         return
 
@@ -119,6 +134,14 @@ class Collection(shapes.Shape):
             child.set_collapse(c)
         self.set_collapse(c)
         return
+
+    def pop(self, i):
+        # Reverse indexing
+        n = len(self.collection)
+        if i < 0:
+            i = n + i
+        assert 0 <= i < n, f"{self.__class__.__name__} index {i} is out of range for pop (size {n})"
+        return self.collection.pop(i)
 
     # ==== Graphics ====
     def get_children(self):

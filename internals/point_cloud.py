@@ -2,8 +2,7 @@ import numpy as np
 from enum import Enum
 from math import sin, cos
 import random, string
-import utils
-import collection, waveform, seperator, shapes
+from internals import utils, collection, waveform, seperator, shapes
 
 
 # This is nearly identical to collection but is always in duplicate mode, and 

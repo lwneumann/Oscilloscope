@@ -15,19 +15,19 @@ class SoundOutput:
         # I would allow passing custom input names in but thats frankly just annoying to type when running so I dont want to
         if custom_output_name:
             device_name = ["VB", "Cable"]
-            self.device_index = self.find_device(device_name)
-            print(f"Using output #{self.device_index}: {device_name}")
+            self.device_index, dev_name = self.find_device(device_name)
+            print(f"> Using output #{self.device_index}: {dev_name}")
         else:
             self.device_index = None
             default_output_index = sd.default.device[1]  # (input, output)
             default_output_info = sd.query_devices(default_output_index)
-            print(f"Using default output #{default_output_index}: {default_output_info['name']}")
+            print(f"> Using default output #{default_output_index}: {default_output_info['name']}")
         return
 
     def find_device(self, name):
         for i, dev in enumerate(sd.query_devices()):
             if all(n in dev['name'] for n in name) and dev['max_output_channels'] >= 2:
-                return i
+                return i, dev['name']
         raise RuntimeError(f"Device '{name}' not found")
 
     def callback(self, outdata, frames, time, status):

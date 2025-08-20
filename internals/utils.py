@@ -1,8 +1,13 @@
-from math import ceil
-import shapes
+from math import pi
 import numpy as np
+from internals import shapes
 
 
+# ==== Constants ====
+BASE_FREQUENCY = 440
+
+
+# ==== Functions ====
 def divide_time(chunk_count, t):
     """
     Divide t into chunk_count unique, equal-length chunks.
@@ -36,6 +41,20 @@ def rotate_points(x, y, z, tilt_x, tilt_y, tilt_z):
         return [x_z, y_z, z_y]
 
 
+def fpart(n):
+    """
+    Floating point division makes ugly numbers so this is a little way to avoid that.
+    This isn't just being petty - these are fed into the graphics so there is a reason to make them look nice.
+    ex of implementations I am avoiding to not get something like 1.2 -> 0.19999999...
+    n%1
+    (n)-(n//1)
+    """
+    sn = str(n)
+    if '.' not in sn:
+         return n
+    else:
+        return float("."+sn.split('.')[1])
+
 # === Classes ===
 class Rotator(shapes.ParamShape):
     def __init__(self, modes=None, collapsed=True):
@@ -55,11 +74,17 @@ class Rotator(shapes.ParamShape):
         return
 
     def rotate_points(self, x, y, z):
-        rotated_points = rotate_points(x, y, z, self.tilt_x, self.tilt_y, self.tilt_z)
+        rotated_points = rotate_points(x, y, z,
+                                       2*pi*self.tilt_x,
+                                       2*pi*self.tilt_y,
+                                       2*pi*self.tilt_z)
         
         # Update spin
-        self.tilt_x += self.dx
-        self.tilt_y += self.dy
-        self.tilt_z += self.dz
+        # self.tilt_x += self.dx
+        # self.tilt_y += self.dy
+        # self.tilt_z += self.dz
+        self.tilt_x = fpart(self.tilt_x + self.dx)
+        self.tilt_y = fpart(self.tilt_y + self.dy)
+        self.tilt_z = fpart(self.tilt_z + self.dz)
 
         return rotated_points

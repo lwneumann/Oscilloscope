@@ -1,6 +1,6 @@
 import copy, curses
 import numpy as np
-import point_cloud, collection, waveform, variable_box
+from internals import point_cloud, collection, waveform, variable_box, peacewise
 
 
 # === Keystrokes detection ===
@@ -80,6 +80,9 @@ class Curse:
             'RIGHT': [curses.KEY_RIGHT],
             # Bigger nav jumps
             # These are the arrow keys with shift held
+            'JUMPX': [ord('X')],
+            'JUMPY': [ord('Y')],
+            'JUMPZ': [ord('Z')],
             'STRONGUP': [547],
             'STRONGDOWN': [548],
             'STRONGLEFT': [391],
@@ -88,14 +91,18 @@ class Curse:
             'ADDPOINTCLOUD': [],
             'ADDCOLLECTION': [ord('a')],
             'ADDWAVEFORM': [ord('w')],
+            'ADDPEACEWISE': [ord('p')],
             'EDIT': [ord('\n')],
             'SELECT': [ord('S')],
+            'PLACEINCOLLECTION': [ord('A')],
+            'RENAME': [ord('R')],
             # 27 is escape
             'DESELECT': [27],
             'CUT': [],
             'COPY': [ord('C')],
             'PASTE': [ord('V')],
-            'DELETE': [],
+            # 330 is delete
+            'DELETE': [330],
             'MOVE': [],
             'DUPLICATE': [],
             # Visuals
@@ -109,12 +116,13 @@ class Curse:
             # --- Variables
             # shift tab
             'TOGGLEVARIABLE': [351],
-            'ADDVARIABLE': [ord('a')],
+            'ADDVARIABLE': [ord('v')],
             'BINDVARIABLE': [ord('x')]
         }
+        self.validate_hotkeys()
         return
 
-    # ==== Setup and Graphics ====
+    # ==== Setup ====
     def setup_curse(self):
         # Initialize windoow
         self.stdscr = curses.initscr()
@@ -130,6 +138,33 @@ class Curse:
         curses.curs_set(False)
         return
 
+    def validate_hotkeys(self):
+        """
+        This just prints all hotkeys with conflicting inptus. It will reutrn this as well.
+        """
+        key_map = {}
+        # Build a reverse dict of keys -> hotkey
+        for hotkey in self.hotkey_map:
+            for k in self.hotkey_map[hotkey]:
+                if k in key_map:
+                    key_map[k].append(hotkey)
+                else:
+                    key_map[k] = [hotkey]
+        
+        # Check for overlap
+        printed_header = False
+        for key in key_map:
+            # Quit and deselect are expected to be double mapped as you quit/deselect twice to close.
+            if len(key_map[key]) > 1 and key_map[key] != ['DESELECT', 'QUIT']:
+                if not printed_header:
+                    print('> Overbound hotkeys:')
+                    printed_header = True
+                print('->', key, key_map[key])
+        if not printed_header:
+            print('> Hotkeys valid')
+        return
+
+    # ==== Graphics ===
     def write_row(self, y_pos, ind, depth=[], indexes=[], text=None, title=False, selected_title=False, x_offset=0):
         """
         This writes a full row of the tree with branches, selection, highlighting, and text.
@@ -329,7 +364,7 @@ class Curse:
         selected, parent, bottom = self.get_selected(self.in_variable_menu, ind)
 
         if isinstance(selected, collection.Collection):
-            selected.add(add)
+            selected.append(add)
         elif len(ind) > 1:
             self.add_to_selected(add, ind[:-1])
         return
@@ -386,7 +421,7 @@ class Curse:
         try:
             var_value = float(var_value_str) if '.' in var_value_str else int(var_value_str)
             # Add a collection with a constant of the inputed value
-            self.variables.add(
+            self.variables.append(
                 var_name,
                 collection.Collection(
                     name=var_name,
@@ -416,13 +451,51 @@ class Curse:
 
         return
 
-    def soft_reset_index(self, bottom):
+    def soft_reset_index(self, selected, bottom):
         # Often when something is reset the index needs to be saftely reset to the top so you aren't indexing something non existant.
-        if len(self.index) > 0 and bottom:
-            self.index[-1] = 0
+        if self.in_variable_menu:
+            if (len(self.variable_index) > 0 and bottom) or len(selected) > self.variable_index[-1]:
+                self.variable_index[-1] = 0
+        else:
+            if (len(self.index) > 0 and bottom) or len(selected) > self.index[-1]:
+                self.index[-1] = 0
 
-        # TODO this resets index even if the old index is allowed within the new
-        # selection
+        # TODO this resets index even if the old index is allowed within the new selection
+        return
+
+    def put_in_collection(self):
+        """
+        Place the selected object into a parent collection
+        """
+        # Get selection
+        selected_index = self.get_index(self.in_variable_menu)
+        selected, parent, bottom = self.get_selected(self.in_variable_menu)
+
+        # Ensure it is allowed to be in a collection
+        # TODO add point cloud support
+        if isinstance(selected, (collection.Collection, waveform.Waveform)) and len(selected_index) > 1:
+            parent[selected_index[-1]] = collection.Collection(
+                content=selected
+            )
+        return
+
+    def delete(self):
+        """
+        Delete the value at the selected point
+        """
+        # TODO - this!
+        selected_index = self.get_index(self.in_variable_menu)
+        selected, parent, bottom = self.get_selected(self.in_variable_menu)
+
+        if len(parent) > 1:
+            kill_index = selected_index[-1 if not bottom else -2]
+            parent.pop(kill_index)
+        return
+
+    def rename(self, selected):
+        if hasattr(selected, "name"):
+            new_name = self.user_input('Rename ' + selected.name + ':')
+            selected.name = new_name
         return
 
     # ==== Keystrokes ====
@@ -470,11 +543,17 @@ class Curse:
                 # Attempting to travel into content not into a setting
                 if not bottom:
                     selected_index.append(0)
-            # ---
-            # Jump to root
+            # Jump to root (aliasing don't work here so just handle case by case)
             elif c in self.hotkey_map['JUMPROOT']:
-                selected_index = []
+                if self.in_variable_menu:
+                    self.variable_index = []
+                else:
+                    self.index = []
+            # ---
             # === Modification ===
+            # Rename
+            elif c in self.hotkey_map['RENAME']:
+                self.rename(selected)
             # Edit
             elif c in self.hotkey_map['EDIT'] and bottom:
                     self.edit_value()
@@ -483,8 +562,26 @@ class Curse:
             elif c in self.hotkey_map['TOGGLE']:
                 deselect = True
                 self.toggle_selected()
-                self.soft_reset_index(bottom)
-
+                self.soft_reset_index(selected, bottom)
+            # Delete
+            elif c in self.hotkey_map['DELETE']:
+                self.delete()
+                self.soft_reset_index(selected, bottom)
+            # Place in collection
+            elif c in self.hotkey_map['PLACEINCOLLECTION']:
+                self.put_in_collection()
+            # === Creation ===
+            # Add new container
+            elif c in self.hotkey_map['ADDCOLLECTION']:
+                deselect = True
+                self.add_to_selected(collection.Collection())
+            # TODO doesn't work as intended for variables due to indexing
+            elif c in self.hotkey_map['ADDWAVEFORM']:
+                deselect = True
+                self.add_to_selected(waveform.Waveform())
+            elif c in self.hotkey_map['ADDPEACEWISE']:
+                deselect = True
+                self.add_to_selected(peacewise.Peacewise())
             # === Variable Menu ===
             if self.in_variable_menu:
                 if c in self.hotkey_map['ADDVARIABLE']:
@@ -493,18 +590,9 @@ class Curse:
                 last_key = c
             # === Main Data Tree ===
             else:
-                # === Creation ===
-                # Add new container
-                if c in self.hotkey_map['ADDCOLLECTION']:
-                    deselect = True
-                    self.add_to_selected(collection.Collection())
-                elif c in self.hotkey_map['ADDWAVEFORM']:
-                    deselect = True
-                    self.add_to_selected(waveform.Waveform())
-                
                 # === General Controls ===
                 # Highlight selected
-                elif c in self.hotkey_map['SELECT']:
+                if c in self.hotkey_map['SELECT']:
                     if self.highlights is None or self.highlights != self.index:
                         self.highlights = copy.deepcopy(self.index)
                     else:
@@ -519,14 +607,14 @@ class Curse:
                 # Single collapse
                 elif c in self.hotkey_map['COLLAPSE']:
                     selected.toggle_collapse()
-                    self.soft_reset_index(bottom)
+                    self.soft_reset_index(selected, bottom)
                 # Collapse all
                 elif c in self.hotkey_map['COLLAPSEALL']:
                     if hasattr(selected, "set_all_collapse"):
                         selected.set_all_collapse(not selected.collapsed)
                     else:
                         selected.toggle_collapse()
-                    self.soft_reset_index(bottom)
+                    self.soft_reset_index(selected, bottom)
                 # ---
 
                 # === Modification ===

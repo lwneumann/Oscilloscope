@@ -1,6 +1,6 @@
 import numpy as np
 from enum import Enum
-import shapes
+from internals import shapes, utils
 
 class wfMode(Enum):
     SIN = 1
@@ -10,11 +10,10 @@ class wfMode(Enum):
     SQUARE = 5
     CONSTANT = 6
 
-
 class Waveform(shapes.ParamShape):
     def __init__(self,
                  mode='SIN',
-                 frequency=440,
+                 frequency=utils.BASE_FREQUENCY,
                  amplitude=1,
                  phase=0):
         # When constant, these are the names and maps instead.
@@ -82,6 +81,7 @@ class Waveform(shapes.ParamShape):
         elif mode == 'TRIANGLE':
             val = amp * (2 * np.abs(2 * (freq * t + phase) % 2 - 1) - 1)
         elif mode == 'SQUARE':
+            # -1, 1
             val = amp * np.sign(np.sin(2 * np.pi * freq * t + phase))
         elif mode == 'CONSTANT':
             val = np.full_like(t, amp)

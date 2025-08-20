@@ -1,5 +1,5 @@
 from enum import Enum
-import shapes
+from internals import shapes
 
 
 # This is similar to a collection though just holds variables to be bound to things
@@ -51,7 +51,7 @@ class VariableBox(shapes.ParamShape):
         return self.name
 
     # === Functionality ===
-    def add(self, name, val):
+    def append(self, name, val):
         # Add name
         self.parameter_names.append(name)
         self.index_map.append(name)
